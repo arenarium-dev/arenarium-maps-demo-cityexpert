@@ -6,6 +6,13 @@
 	import Tooltip from '$lib/marker/Tooltip.svelte';
 	import Popup from '$lib/marker/Popup.svelte';
 
+	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+
+	import SvgLogo from '$lib/assets/logo.svg';
+
+	import IconSliders from '@lucide/svelte/icons/sliders-horizontal';
+
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
 	import '@arenarium/maps/style.css';
@@ -104,7 +111,7 @@
 				popup: {
 					initialize: initializePopup,
 					element: document.createElement('div'),
-					dimensions: { width: 232 * spacing, height: 220 * spacing, padding: 8 * spacing },
+					dimensions: { width: 288 * spacing, height: 258 * spacing, padding: 8 * spacing },
 					style: { background: '#ffffff', radius: 12 * spacing }
 				}
 			};
@@ -172,14 +179,41 @@
 	}
 </script>
 
-<div id="map"></div>
+<div class="absolute top-0 left-0 h-full w-full bg-gray-200">
+	<div id="map" class="absolute top-0 left-0 h-full w-full"></div>
+</div>
 
-<style>
-	#map {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+<header class="absolute top-4 left-4 max-w-full rounded-lg bg-white p-2 shadow-sm">
+	<div class="flex items-center gap-4 overflow-auto">
+		<a href="https://cityexpert.rs" class="ml-2">
+			<img src={SvgLogo} alt="logo" class="w-32" />
+		</a>
+		<Dialog.Root>
+			<Dialog.Trigger
+				type="button"
+				class={[
+					buttonVariants({ variant: 'outline' }),
+					'cursor-pointer gap-3 border-none bg-gray-100 font-semibold text-gray-600 hover:bg-gray-200!'
+				]}
+			>
+				<IconSliders class="w-5" strokeWidth={2.5} />
+				<span>Pretraga</span>
+			</Dialog.Trigger>
+			<Dialog.Content class="sm:max-w-100">
+				<Dialog.Header>
+					<Dialog.Title class="flex items-center gap-2">Pretraga</Dialog.Title>
+					<Dialog.Description>
+						Make changes to your profile here. Click save when you&apos;re done.
+					</Dialog.Description>
+				</Dialog.Header>
+				<div class="grid gap-4"></div>
+				<Dialog.Footer>
+					<Dialog.Close type="button" class={buttonVariants({ variant: 'outline' })}>
+						Resetuj
+					</Dialog.Close>
+					<Button type="submit">Pretraži</Button>
+				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Root>
+	</div>
+</header>

@@ -89,12 +89,12 @@
 
 {#if details}
 	<div
-		class="absolute flex flex-col p-1.5 font-[Poppins]"
+		class="absolute flex flex-col gap-0.5 p-1.5 font-[Poppins]"
 		style="--spacing: {spacing}px; width: {width}px; height: {height}px;"
 		transition:fade={{ duration: 250 }}
 	>
 		<div
-			class="group relative mb-2.5 aspect-video w-full grow cursor-pointer overflow-hidden rounded-lg bg-gray-100 *:transition-all *:duration-125"
+			class="group relative mb-2 aspect-video w-full grow cursor-pointer overflow-hidden rounded-lg bg-gray-100 *:transition-all *:duration-125"
 		>
 			{#if images.length > 0}
 				{#if image}
@@ -162,7 +162,7 @@
 		</div>
 
 		<div
-			class="font-primary grid grid-cols-[1fr_1fr_2fr] gap-1.5 text-center text-[calc(2.5*var(--spacing))] leading-5 font-semibold text-gray-600"
+			class="font-primary grid grid-cols-[1fr_1fr_2fr] gap-1.5 text-center text-[calc(3*var(--spacing))] leading-6 font-semibold text-gray-600"
 		>
 			<div class="rounded-full bg-gray-100 px-2 whitespace-nowrap">
 				<span>{details.size} m²</span>
@@ -178,7 +178,7 @@
 	</div>
 {:else}
 	<div
-		class="absolute flex flex-col gap-2 p-2"
+		class="absolute flex flex-col gap-2 p-1.5"
 		style="--spacing: {spacing}px;"
 		style:width={width + 'px'}
 		style:height={height + 'px'}
