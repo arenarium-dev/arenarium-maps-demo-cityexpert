@@ -1,0 +1,185 @@
+<script lang="ts">
+	import { onMount, mount } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
+
+	import Pin from '$lib/marker/Pin.svelte';
+	import Tooltip from '$lib/marker/Tooltip.svelte';
+	import Popup from '$lib/marker/Popup.svelte';
+
+	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
+	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
+	import '@arenarium/maps/style.css';
+
+	import maplibregl from 'maplibre-gl';
+	import 'maplibre-gl/dist/maplibre-gl.css';
+
+	import type {
+		MapSearchItem,
+		MapSearchItemDetails,
+		MapSearchRequest,
+		MapSearchResult
+	} from '$lib/types';
+
+	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
+
+	let mapLibre: maplibregl.Map | undefined;
+	let mapProvider: MaplibreProvider | undefined;
+	let mapManager: MapManager | undefined;
+
+	let searchMapMarkers: Map<string, MapMarkerProperties> = new Map();
+	let searchMapItems: Map<string, MapSearchItem> = new Map();
+	let searchMapItemDetails: SvelteMap<string, MapSearchItemDetails> = new SvelteMap();
+
+	const spacing = $derived(window && window.innerWidth > 768 ? 1 : 0.8);
+
+	onMount(async () => {
+		// Create a maplibre provider instance
+		mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
+			container: 'map',
+			zoom: 13,
+			center: [20.450989, 44.811222],
+			style: '/style.json'
+			// Other maplibre options...
+		});
+		// Initialize the map manager with the provider
+		mapManager = await MapManager.create(PUBLIC_ARENARIUM_MAPS_TOKEN, mapProvider, {
+			pin: {
+				fadeout: {
+					scale: 0.2,
+					color: 0
+				},
+				depth: 2
+			}
+		});
+		// Access the maplibre instance for direct map interactions
+		mapLibre = mapProvider.getMap();
+
+		await search();
+	});
+
+	async function search() {
+		if (!mapManager) return;
+
+		const searchRequest: MapSearchRequest = {
+			ptId: [1, 2, 5, 4],
+			cityId: 1,
+			rentOrSale: 'r',
+			searchSource: 'regular',
+			sort: 'pricedsc',
+			furnished: [1],
+			isFeatured: true
+		};
+
+		const searchUrl = `/api/search?req=${encodeURIComponent(JSON.stringify(searchRequest))}`;
+		const searchResponse = await fetch(searchUrl);
+		if (!searchResponse.ok) throw new Error('Failed to search');
+
+		const searchResult: MapSearchResult = await searchResponse.json();
+
+		// Clear existing markers
+		searchMapMarkers.clear();
+		searchMapItems.clear();
+		searchMapItemDetails.clear();
+
+		// Create markers
+		for (let i = 0; i < searchResult.length; i++) {
+			const item = searchResult[i];
+			const marker: MapMarkerProperties = {
+				id: item.propId.toString(),
+				rank: searchResult.length - i,
+				lat: item.mapLat,
+				lng: item.mapLng,
+				pin: {
+					initialize: initializePin,
+					element: document.createElement('div'),
+					dimensions: { radius: 12 * spacing, stroke: 2 },
+					style: { stroke: '#ffffff', background: '#df2d43aa' }
+				},
+				tooltip: {
+					initialize: initializeTooltip,
+					element: document.createElement('div'),
+					dimensions: { width: 104 * spacing, height: 54 * spacing, padding: 8 * spacing },
+					style: { background: '#ffffff', radius: 12 * spacing }
+				},
+				popup: {
+					initialize: initializePopup,
+					element: document.createElement('div'),
+					dimensions: { width: 232 * spacing, height: 220 * spacing, padding: 8 * spacing },
+					style: { background: '#ffffff', radius: 12 * spacing }
+				}
+			};
+
+			searchMapItems.set(item.propId.toString(), item);
+			searchMapMarkers.set(item.propId.toString(), marker);
+		}
+
+		mapManager.updateMarkers(Array.from(searchMapMarkers.values()));
+	}
+
+	async function initializePin(id: string, element: HTMLElement): Promise<void> {
+		const item = searchMapItems.get(id);
+		if (!item) throw new Error('Item not found');
+
+		mount(Pin, { target: element, props: { type: item.ptId } });
+	}
+
+	async function initializeTooltip(id: string, element: HTMLElement): Promise<void> {
+		const marker = searchMapMarkers.get(id);
+		if (!marker) throw new Error('Marker not found');
+
+		const dimensions = marker.tooltip?.dimensions;
+		if (!dimensions) throw new Error('Tooltip style not found');
+
+		const width = dimensions.width;
+		const height = dimensions.height;
+		const data = searchMapItemDetails;
+
+		mount(Tooltip, {
+			target: element,
+			props: { id, spacing, width, height, data }
+		});
+
+		if (searchMapItemDetails.get(id) === undefined) await updateDetails(id);
+	}
+
+	async function initializePopup(id: string, element: HTMLElement): Promise<void> {
+		const marker = searchMapMarkers.get(id);
+		if (!marker) throw new Error('Marker not found');
+
+		const dimensions = marker.popup?.dimensions;
+		if (!dimensions) throw new Error('Popup style not found');
+
+		const width = dimensions.width;
+		const height = dimensions.height;
+		const data = searchMapItemDetails;
+
+		mount(Popup, {
+			target: element,
+			props: { id, spacing, width, height, data }
+		});
+
+		if (searchMapItemDetails.get(id) === undefined) await updateDetails(id);
+	}
+
+	async function updateDetails(id: string): Promise<void> {
+		const detailsUrl = `api/details?id=${id}`;
+		const detailsResponse = await fetch(detailsUrl);
+		if (!detailsResponse.ok) return;
+
+		const detailsData = await detailsResponse.json();
+		if (detailsData.propId == 65951) console.log(detailsData);
+		searchMapItemDetails.set(id, detailsData);
+	}
+</script>
+
+<div id="map"></div>
+
+<style>
+	#map {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+	}
+</style>
