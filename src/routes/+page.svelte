@@ -191,6 +191,7 @@
 		if (!detailsResponse.ok) return;
 
 		const detailsData = await detailsResponse.json();
+		console.log(detailsData);
 		searchMapItemDetails.set(id, detailsData);
 	}
 </script>
@@ -198,7 +199,7 @@
 <div class="absolute top-0 left-0 h-full w-full bg-gray-200">
 	<div id="map" class="absolute top-0 left-0 h-full w-full"></div>
 	<div class="absolute right-4 bottom-12">
-		<ButtonGroup.Root orientation="vertical">
+		<ButtonGroup.Root orientation="vertical" class="rounded-lg shadow-md">
 			<Button onclick={onZoomIn} variant="ghost" class="size-10 border border-gray-100 bg-white">
 				<IconPlus class="w-4" />
 			</Button>

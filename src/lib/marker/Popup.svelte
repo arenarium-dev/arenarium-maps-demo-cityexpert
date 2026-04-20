@@ -9,6 +9,7 @@
 	import IconChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	import type { MapSearchItemDetails } from '$lib/types';
+	import { latinise } from '$lib/latinise';
 
 	let props: {
 		id: string;
@@ -21,10 +22,53 @@
 	let height = untrack(() => props.height);
 	let details = $derived(props.data.get(props.id));
 
+	let contract = $derived(details?.rentOrSale === 'r' ? 'izdavanje' : 'prodaja');
+	let city = $derived.by(() => {
+		switch (details?.cityId) {
+			case 1:
+				return 'beograd';
+			case 2:
+				return 'novi-sad';
+			case 3:
+				return 'niš';
+			default:
+				return;
+		}
+	});
+	let id = $derived(details?.propId);
+	let type = $derived.by(() => {
+		switch (details?.ptId) {
+			case 1:
+				return 'stan';
+			case 2:
+				return 'kuca';
+			case 3:
+				return 'stan-u-kuci';
+			case 4:
+				return 'lokal';
+			case 5:
+				return 'poslovni-prostor';
+			default:
+				return;
+		}
+	});
+	let street = $derived(
+		latinise(details?.street ?? '')
+			.toLowerCase()
+			.replaceAll(' ', '-')
+	);
+	let municipality = $derived(
+		latinise(details?.municipality ?? '')
+			.toLowerCase()
+			.replaceAll(' ', '-')
+	);
+	let url = $derived(
+		`https://cityexpert.rs/${contract}-nekretnina/${city}/${id}/${type}-${street}-${municipality}`
+	);
+
 	let imageIndex = $state(0);
 	let imageLoading = $state(false);
 	let imageLoaded = $state(false);
-
 	let images = $derived.by<string[]>(() => {
 		const array: string[] = [];
 
@@ -75,9 +119,19 @@
 		imageLoaded = true;
 		imageLoading = false;
 	}
+
+	function onImageClick(e: Event) {
+		e.stopPropagation();
+	}
 </script>
 
-<div class="relative" style:width={width + 'px'} style:height={height + 'px'}>
+<a
+	href={url}
+	target="_blank"
+	class="relative block"
+	style:width={width + 'px'}
+	style:height={height + 'px'}
+>
 	{#if details}
 		<div
 			class="absolute top-0 left-0 flex h-full w-full flex-col gap-0.5 p-1.5 font-[Poppins]"
@@ -177,4 +231,4 @@
 			<div class="h-6 w-full rounded-lg bg-gray-100"></div>
 		</div>
 	{/if}
-</div>
+</a>
