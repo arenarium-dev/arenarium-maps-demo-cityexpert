@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, mount } from 'svelte';
+	import { onMount, mount, onDestroy, tick } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { outerWidth } from 'svelte/reactivity/window';
 
@@ -46,6 +46,7 @@
 	let searchMapMarkers: Map<string, MapMarkerProperties> = new Map();
 	let searchMapItems: SvelteMap<string, MapSearchItem> = new SvelteMap();
 	let searchMapItemDetails: SvelteMap<string, MapSearchItemDetails> = new SvelteMap();
+	let searchMapItemDetailsLoading: Map<string, boolean> = new Map();
 
 	let width = $derived(outerWidth.current ?? 0);
 	let compact = $derived(width <= 768);
@@ -55,7 +56,9 @@
 	let listPopupWidth = $derived(compact && width ? width - 32 : POPUP_WIDTH);
 	let listPopupHeight = $derived(POPUP_HEIGHT);
 
-	$inspect(listPopupWidth, width);
+	let listElement = $state<HTMLElement>();
+	let listElements = $state<HTMLElement[]>([]);
+	let listObserver: IntersectionObserver | undefined;
 
 	onMount(async () => {
 		// Create a maplibre provider instance
@@ -82,9 +85,14 @@
 		await search();
 	});
 
+	onDestroy(() => {
+		listObserver?.disconnect();
+	});
+
 	$effect(() => {
-		console.log('Compact:', compact);
-		search();
+		if (compact || !compact) {
+			search();
+		}
 	});
 
 	function onZoomIn() {
@@ -133,19 +141,19 @@
 				lat: item.mapLat,
 				lng: item.mapLng,
 				pin: {
-					initialize: initializePin,
+					initialize: onInitializePin,
 					element: document.createElement('div'),
 					dimensions: { radius: 12 * spacing, stroke: 2 },
 					style: { stroke: '#ffffff', background: '#df2d43aa' }
 				},
 				tooltip: {
-					initialize: initializeTooltip,
+					initialize: onInitializeTooltip,
 					element: document.createElement('div'),
 					dimensions: { width: 104 * spacing, height: 54 * spacing, padding: 8 * spacing },
 					style: { background: '#ffffff', radius: 12 * spacing }
 				},
 				popup: {
-					initialize: initializePopup,
+					initialize: onInitializePopup,
 					element: document.createElement('div'),
 					dimensions: { width: POPUP_WIDTH, height: POPUP_HEIGHT, padding: 8 * spacing },
 					style: { background: '#ffffff', radius: POPUP_RADIUS }
@@ -158,16 +166,35 @@
 
 		// Update map markers
 		mapManager.updateMarkers(Array.from(searchMapMarkers.values()));
+
+		// Wait for the next tick to ensure elements are in the DOM
+		await tick();
+
+		// Disconnect the list observer before re-creating it
+		listObserver?.disconnect();
+
+		// Create the list observer
+		if (listElement) {
+			listObserver = new IntersectionObserver(onListObserve, {
+				root: listElement,
+				threshold: 0
+			});
+
+			// Observe list elements for intersection changes
+			for (const element of listElements) {
+				listObserver?.observe(element);
+			}
+		}
 	}
 
-	async function initializePin(id: string, element: HTMLElement): Promise<void> {
+	async function onInitializePin(id: string, element: HTMLElement): Promise<void> {
 		const item = searchMapItems.get(id);
 		if (!item) throw new Error('Item not found');
 
 		mount(Pin, { target: element, props: { type: item.ptId } });
 	}
 
-	async function initializeTooltip(id: string, element: HTMLElement): Promise<void> {
+	async function onInitializeTooltip(id: string, element: HTMLElement): Promise<void> {
 		const marker = searchMapMarkers.get(id);
 		if (!marker) throw new Error('Marker not found');
 
@@ -186,7 +213,7 @@
 		if (searchMapItemDetails.get(id) === undefined) await updateDetails(id);
 	}
 
-	async function initializePopup(id: string, element: HTMLElement): Promise<void> {
+	async function onInitializePopup(id: string, element: HTMLElement): Promise<void> {
 		const marker = searchMapMarkers.get(id);
 		if (!marker) throw new Error('Marker not found');
 
@@ -205,13 +232,34 @@
 		if (searchMapItemDetails.get(id) === undefined) await updateDetails(id);
 	}
 
-	async function updateDetails(id: string): Promise<void> {
-		const detailsUrl = `api/details?id=${id}`;
-		const detailsResponse = await fetch(detailsUrl);
-		if (!detailsResponse.ok) return;
+	function onListObserve(entries: IntersectionObserverEntry[]) {
+		for (const entry of entries) {
+			if (entry.isIntersecting) {
+				const id = entry.target.getAttribute('data-id');
+				if (id) updateDetails(id);
+			}
+		}
+	}
 
-		const detailsData = await detailsResponse.json();
-		searchMapItemDetails.set(id, detailsData);
+	async function updateDetails(id: string): Promise<void> {
+		const detailsLoading = searchMapItemDetailsLoading.get(id) ?? false;
+		if (detailsLoading) return;
+
+		const detailsExists = searchMapItemDetails.has(id);
+		if (detailsExists) return;
+
+		try {
+			searchMapItemDetailsLoading.set(id, true);
+
+			const detailsUrl = `api/details?id=${id}`;
+			const detailsResponse = await fetch(detailsUrl);
+			if (!detailsResponse.ok) return;
+
+			const detailsData = await detailsResponse.json();
+			searchMapItemDetails.set(id, detailsData);
+		} finally {
+			searchMapItemDetailsLoading.set(id, false);
+		}
 	}
 </script>
 
@@ -271,9 +319,14 @@
 		hidden: compact && !list
 	}}
 >
-	<div class="scroll flex h-full w-full flex-wrap gap-4 overflow-y-scroll p-4 pr-0">
-		{#each searchMapItems.values() as details}
+	<div
+		bind:this={listElement}
+		class="scroll flex h-full w-full flex-wrap gap-4 overflow-y-scroll p-4 pr-0"
+	>
+		{#each searchMapItems.values() as details, i}
 			<div
+				bind:this={listElements[i]}
+				data-id={details.propId.toString()}
 				class="h-[{listPopupHeight}px] w-[{listPopupWidth}px] rounded-xl bg-white shadow-sm transition-all duration-150 ease-in-out hover:shadow-md"
 			>
 				<Popup
