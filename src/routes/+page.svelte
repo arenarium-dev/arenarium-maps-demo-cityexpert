@@ -7,11 +7,14 @@
 	import Popup from '$lib/marker/Popup.svelte';
 
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	import SvgLogo from '$lib/assets/logo.svg';
 
-	import IconSliders from '@lucide/svelte/icons/sliders-horizontal';
+	import IconSliders from '@lucide/svelte/icons/search';
+	import IconPlus from '@lucide/svelte/icons/plus';
+	import IconMinus from '@lucide/svelte/icons/minus';
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
@@ -67,6 +70,16 @@
 
 		await search();
 	});
+
+	function onZoomIn() {
+		if (!mapLibre) return;
+		mapLibre.zoomIn();
+	}
+
+	function onZoomOut() {
+		if (!mapLibre) return;
+		mapLibre.zoomOut();
+	}
 
 	async function search() {
 		if (!mapManager) return;
@@ -184,6 +197,16 @@
 
 <div class="absolute top-0 left-0 h-full w-full bg-gray-200">
 	<div id="map" class="absolute top-0 left-0 h-full w-full"></div>
+	<div class="absolute right-4 bottom-12">
+		<ButtonGroup.Root orientation="vertical">
+			<Button onclick={onZoomIn} variant="ghost" class="size-10 border border-gray-100 bg-white">
+				<IconPlus class="w-4" />
+			</Button>
+			<Button onclick={onZoomOut} variant="ghost" class="size-10 border border-gray-100 bg-white">
+				<IconMinus class="w-4" />
+			</Button>
+		</ButtonGroup.Root>
+	</div>
 </div>
 
 <header class="absolute top-0 left-0 z-1 w-156 max-w-full bg-white p-2 shadow-sm">
