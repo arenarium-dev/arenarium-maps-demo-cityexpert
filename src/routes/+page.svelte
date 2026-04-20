@@ -29,15 +29,19 @@
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
 
+	const POPUP_WIDTH = 288;
+	const POPUP_HEIGHT = 258;
+	const POPUP_RADIUS = 8;
+
 	let mapLibre: maplibregl.Map | undefined;
 	let mapProvider: MaplibreProvider | undefined;
 	let mapManager: MapManager | undefined;
 
 	let searchMapMarkers: Map<string, MapMarkerProperties> = new Map();
-	let searchMapItems: Map<string, MapSearchItem> = new Map();
+	let searchMapItems: SvelteMap<string, MapSearchItem> = new SvelteMap();
 	let searchMapItemDetails: SvelteMap<string, MapSearchItemDetails> = new SvelteMap();
 
-	const spacing = $derived(window && window.innerWidth > 768 ? 1 : 0.8);
+	let spacing = $derived(window && window.innerWidth > 768 ? 1 : 0.8);
 
 	onMount(async () => {
 		// Create a maplibre provider instance
@@ -111,8 +115,8 @@
 				popup: {
 					initialize: initializePopup,
 					element: document.createElement('div'),
-					dimensions: { width: 288 * spacing, height: 258 * spacing, padding: 8 * spacing },
-					style: { background: '#ffffff', radius: 12 * spacing }
+					dimensions: { width: POPUP_WIDTH, height: POPUP_HEIGHT, padding: 8 * spacing },
+					style: { background: '#ffffff', radius: POPUP_RADIUS }
 				}
 			};
 
@@ -174,7 +178,6 @@
 		if (!detailsResponse.ok) return;
 
 		const detailsData = await detailsResponse.json();
-		if (detailsData.propId == 65951) console.log(detailsData);
 		searchMapItemDetails.set(id, detailsData);
 	}
 </script>
@@ -183,7 +186,7 @@
 	<div id="map" class="absolute top-0 left-0 h-full w-full"></div>
 </div>
 
-<header class="absolute top-4 left-4 max-w-full rounded-lg bg-white p-2 shadow-sm">
+<header class="absolute top-0 left-0 z-1 w-156 max-w-full bg-white p-2 shadow-sm">
 	<div class="flex items-center gap-4 overflow-auto">
 		<a href="https://cityexpert.rs" class="ml-2">
 			<img src={SvgLogo} alt="logo" class="w-32" />
@@ -193,11 +196,11 @@
 				type="button"
 				class={[
 					buttonVariants({ variant: 'outline' }),
-					'cursor-pointer gap-3 border-none bg-gray-100 font-semibold text-gray-600 hover:bg-gray-200!'
+					'grow cursor-pointer justify-start gap-3 border-none bg-gray-100 font-semibold text-gray-400 hover:bg-gray-200! hover:text-gray-600'
 				]}
 			>
+				<span class="grow text-start">Pretraga</span>
 				<IconSliders class="w-5" strokeWidth={2.5} />
-				<span>Pretraga</span>
 			</Dialog.Trigger>
 			<Dialog.Content class="sm:max-w-100">
 				<Dialog.Header>
@@ -217,3 +220,27 @@
 		</Dialog.Root>
 	</div>
 </header>
+
+<div class="absolute top-12 bottom-0 left-0 w-156 overflow-hidden bg-gray-100 shadow-sm">
+	<div class="scroll flex h-full w-full flex-wrap gap-4 overflow-y-scroll p-4 pr-0">
+		{#each searchMapItems.values() as details}
+			<div
+				class="h-[{POPUP_HEIGHT}px] w-[{POPUP_WIDTH}px] rounded-xl bg-white shadow-sm transition-all duration-150 ease-in-out hover:shadow-md"
+			>
+				<Popup
+					id={details.propId.toString()}
+					height={POPUP_HEIGHT}
+					width={POPUP_WIDTH}
+					data={searchMapItemDetails}
+				/>
+			</div>
+		{/each}
+	</div>
+</div>
+
+<style>
+	.scroll {
+		scrollbar-color: #aaa transparent;
+		scrollbar-width: thin;
+	}
+</style>
