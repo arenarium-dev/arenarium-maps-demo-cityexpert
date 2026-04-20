@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, mount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
+	import { outerWidth } from 'svelte/reactivity/window';
 
 	import Pin from '$lib/marker/Pin.svelte';
 	import Tooltip from '$lib/marker/Tooltip.svelte';
@@ -15,6 +16,8 @@
 	import IconSliders from '@lucide/svelte/icons/search';
 	import IconPlus from '@lucide/svelte/icons/plus';
 	import IconMinus from '@lucide/svelte/icons/minus';
+	import IconList from '@lucide/svelte/icons/rows-3';
+	import IconMap from '@lucide/svelte/icons/map';
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
@@ -34,7 +37,7 @@
 
 	const POPUP_WIDTH = 288;
 	const POPUP_HEIGHT = 258;
-	const POPUP_RADIUS = 8;
+	const POPUP_RADIUS = 12;
 
 	let mapLibre: maplibregl.Map | undefined;
 	let mapProvider: MaplibreProvider | undefined;
@@ -44,7 +47,15 @@
 	let searchMapItems: SvelteMap<string, MapSearchItem> = new SvelteMap();
 	let searchMapItemDetails: SvelteMap<string, MapSearchItemDetails> = new SvelteMap();
 
-	let spacing = $derived(window && window.innerWidth > 768 ? 1 : 0.8);
+	let width = $derived(outerWidth.current ?? 0);
+	let compact = $derived(width <= 768);
+	let spacing = $derived(compact ? 0.8 : 1);
+
+	let list = $state(false);
+	let listPopupWidth = $derived(compact && width ? width - 32 : POPUP_WIDTH);
+	let listPopupHeight = $derived(POPUP_HEIGHT);
+
+	$inspect(listPopupWidth, width);
 
 	onMount(async () => {
 		// Create a maplibre provider instance
@@ -69,6 +80,11 @@
 		mapLibre = mapProvider.getMap();
 
 		await search();
+	});
+
+	$effect(() => {
+		console.log('Compact:', compact);
+		search();
 	});
 
 	function onZoomIn() {
@@ -105,6 +121,9 @@
 		searchMapItems.clear();
 		searchMapItemDetails.clear();
 
+		// Clear map markers
+		mapManager.clear();
+
 		// Create markers
 		for (let i = 0; i < searchResult.length; i++) {
 			const item = searchResult[i];
@@ -137,6 +156,7 @@
 			searchMapMarkers.set(item.propId.toString(), marker);
 		}
 
+		// Update map markers
 		mapManager.updateMarkers(Array.from(searchMapMarkers.values()));
 	}
 
@@ -191,12 +211,11 @@
 		if (!detailsResponse.ok) return;
 
 		const detailsData = await detailsResponse.json();
-		console.log(detailsData);
 		searchMapItemDetails.set(id, detailsData);
 	}
 </script>
 
-<div class="absolute top-0 left-0 h-full w-full bg-gray-200">
+<div class="absolute top-12 right-0 bottom-12 left-0 bg-gray-200 sm:top-0 sm:bottom-0 sm:left-156">
 	<div id="map" class="absolute top-0 left-0 h-full w-full"></div>
 	<div class="absolute right-4 bottom-12">
 		<ButtonGroup.Root orientation="vertical" class="rounded-lg shadow-md">
@@ -210,7 +229,7 @@
 	</div>
 </div>
 
-<header class="absolute top-0 left-0 z-1 w-156 max-w-full bg-white p-2 shadow-sm">
+<header class="absolute top-0 left-0 z-1 h-12 w-full border-b bg-white p-2 shadow-sm sm:w-156">
 	<div class="flex items-center gap-4 overflow-auto">
 		<a href="https://cityexpert.rs" class="ml-2">
 			<img src={SvgLogo} alt="logo" class="w-32" />
@@ -245,22 +264,53 @@
 	</div>
 </header>
 
-<div class="absolute top-12 bottom-0 left-0 w-156 overflow-hidden bg-gray-100 shadow-sm">
+<div
+	class={{
+		'absolute top-12 bottom-0 left-0 w-156 bg-gray-100 shadow-sm': true,
+		'w-full': compact,
+		hidden: compact && !list
+	}}
+>
 	<div class="scroll flex h-full w-full flex-wrap gap-4 overflow-y-scroll p-4 pr-0">
 		{#each searchMapItems.values() as details}
 			<div
-				class="h-[{POPUP_HEIGHT}px] w-[{POPUP_WIDTH}px] rounded-xl bg-white shadow-sm transition-all duration-150 ease-in-out hover:shadow-md"
+				class="h-[{listPopupHeight}px] w-[{listPopupWidth}px] rounded-xl bg-white shadow-sm transition-all duration-150 ease-in-out hover:shadow-md"
 			>
 				<Popup
 					id={details.propId.toString()}
-					height={POPUP_HEIGHT}
-					width={POPUP_WIDTH}
+					height={listPopupHeight}
+					width={listPopupWidth}
 					data={searchMapItemDetails}
 				/>
 			</div>
 		{/each}
 	</div>
 </div>
+
+<footer class="absolute right-0 bottom-0 left-0 h-12 border-t bg-white p-2 shadow-sm sm:hidden">
+	<div class="flex w-full gap-4">
+		<Button
+			onclick={() => (list = true)}
+			variant="ghost"
+			class={{
+				'grow bg-gray-100 transition-all duration-150': true,
+				'bg-[#df2d43] text-white': list
+			}}
+		>
+			<IconList /> Lista
+		</Button>
+		<Button
+			onclick={() => (list = false)}
+			variant="ghost"
+			class={{
+				'grow bg-gray-100 transition-all duration-150': true,
+				'bg-[#df2d43] text-white': !list
+			}}
+		>
+			<IconMap /> Mapa
+		</Button>
+	</div>
+</footer>
 
 <style>
 	.scroll {

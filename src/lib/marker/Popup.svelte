@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount, untrack } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import type { SvelteMap } from 'svelte/reactivity';
 
@@ -18,8 +17,8 @@
 		data: SvelteMap<string, MapSearchItemDetails>;
 	} = $props();
 
-	let width = untrack(() => props.width);
-	let height = untrack(() => props.height);
+	let width = $derived(props.width);
+	let height = $derived(props.height);
 	let details = $derived(props.data.get(props.id));
 
 	let contract = $derived(details?.rentOrSale === 'r' ? 'izdavanje' : 'prodaja');
@@ -98,7 +97,9 @@
 	let image = $derived(images[imageIndex]);
 
 	function onImageNext(e: Event) {
+		e.preventDefault();
 		e.stopPropagation();
+		e.stopImmediatePropagation();
 
 		if (images.length === 0) return;
 		imageLoaded = false;
@@ -107,7 +108,9 @@
 	}
 
 	function onImagePrev(e: Event) {
+		e.preventDefault();
 		e.stopPropagation();
+		e.stopImmediatePropagation();
 
 		if (images.length === 0) return;
 		imageLoaded = false;
@@ -118,10 +121,6 @@
 	function onImageLoad() {
 		imageLoaded = true;
 		imageLoading = false;
-	}
-
-	function onImageClick(e: Event) {
-		e.stopPropagation();
 	}
 </script>
 
@@ -159,18 +158,18 @@
 						</div>
 					{/if}
 					<button
-						class="absolute bottom-1 left-1 size-6 cursor-pointer rounded-full text-transparent group-hover:bg-white/25 group-hover:text-black"
+						class="absolute top-6 bottom-6 left-0 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
 						onclick={onImagePrev}
 						ondblclick={onImagePrev}
 					>
-						<IconChevronLeft size={22} class="my-px mr-0.5 hover:text-[#df2d43]" />
+						<IconChevronLeft size={30} class="my-px mr-0.5 justify-self-start " />
 					</button>
 					<button
-						class="absolute right-1 bottom-1 size-6 cursor-pointer rounded-full text-transparent group-hover:bg-white/25 group-hover:text-black"
+						class="absolute top-6 right-0 bottom-6 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
 						onclick={onImageNext}
 						ondblclick={onImageNext}
 					>
-						<IconChevronRight size={22} class="my-px ml-0.5 hover:text-[#df2d43]" />
+						<IconChevronRight size={30} class="my-px ml-0.5 justify-self-end " />
 					</button>
 					<div class="absolute right-7 bottom-1 left-7 flex items-center justify-center">
 						<div
