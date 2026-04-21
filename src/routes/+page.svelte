@@ -15,7 +15,7 @@
 
 	import SvgLogo from '$lib/assets/logo.svg';
 
-	import IconSliders from '@lucide/svelte/icons/search';
+	import IconSliders from '@lucide/svelte/icons/sliders-horizontal';
 	import IconPlus from '@lucide/svelte/icons/plus';
 	import IconMinus from '@lucide/svelte/icons/minus';
 	import IconList from '@lucide/svelte/icons/rows-3';
@@ -54,7 +54,7 @@
 	let searchMapItemDetailsLoading: Map<string, boolean> = new Map();
 
 	let width = $derived(outerWidth.current ?? 0);
-	let compact = $derived(width <= 768);
+	let compact = $derived(width <= 640);
 	let spacing = $derived(compact ? 0.8 : 1);
 
 	let list = $state(false);
@@ -269,24 +269,59 @@
 	}
 </script>
 
-<div class="fixed top-15 right-0 bottom-0 left-0 z-1 p-8 sm:right-2 sm:bottom-0 sm:left-160">
-	<div id="map" class="absolute h-full w-full rounded-xl"></div>
-	<div class="absolute top-12 right-12">
-		<ButtonGroup.Root orientation="vertical" class="rounded-lg shadow-md">
-			<Button onclick={onZoomIn} variant="ghost" class="size-8 border border-gray-100 bg-white">
+<div
+	bind:this={listElement}
+	class={{
+		'scroll absolute top-15 right-0 bottom-15 left-0 z-1 overflow-y-scroll bg-white sm:top-0 sm:bottom-0 sm:z-0': true,
+		hidden: compact && !list
+	}}
+>
+	<div
+		class={{
+			'absolute top-0 bottom-0 left-0 w-160': true,
+			'w-full': compact
+		}}
+	>
+		<div class="flex h-full w-full flex-wrap gap-8 p-4 sm:p-8 sm:pr-0">
+			{#each searchMapItems.values() as details, i}
+				<div
+					bind:this={listElements[i]}
+					data-id={details.propId.toString()}
+					style:height={`${listPopupHeight}px`}
+					style:width={`${listPopupWidth}px`}
+				>
+					<Item id={details.propId.toString()} data={searchMapItemDetails} />
+				</div>
+			{/each}
+		</div>
+	</div>
+</div>
+
+<div class="fixed top-15 right-0 bottom-15 left-0 sm:top-23 sm:bottom-0 sm:left-160 sm:p-8">
+	<div id="map" class="absolute h-full w-full sm:rounded-xl"></div>
+	<div class="absolute top-4 right-4 sm:top-12 sm:right-12">
+		<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
+			<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
 				<IconPlus class="w-4" />
 			</Button>
-			<Button onclick={onZoomOut} variant="ghost" class="size-8 border border-gray-100 bg-white">
+			<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
 				<IconMinus class="w-4" />
 			</Button>
 		</ButtonGroup.Root>
 	</div>
 </div>
 
-<header class="fixed top-0 left-0 z-1 h-15 w-full border-b border-gray-100 bg-white">
-	<div class="flex h-full w-full items-center gap-4 overflow-auto px-6">
-		<a href="https://cityexpert.rs" class="w-37.5">
-			<img src={SvgLogo} alt="logo" width="200" height="auto" />
+<header class="fixed top-0 right-0 left-0 z-1 shadow-sm sm:left-160 sm:p-8 sm:shadow-none">
+	<div class="flex h-15 w-full items-center gap-4 overflow-auto bg-gray-100 px-4 sm:rounded-xl">
+		<a
+			href="https://cityexpert.rs"
+			class="flex h-8 items-center justify-center rounded-lg bg-white sm:bg-transparent"
+		>
+			{#if compact}
+				<img src="/favicon.ico" alt="logo" class="m-2" />
+			{:else}
+				<img src={SvgLogo} alt="logo" class="mx-3 mt-1 w-30" />
+			{/if}
 		</a>
 		<div class="flex grow items-center justify-center">
 			<Dialog.Root>
@@ -294,7 +329,7 @@
 					type="button"
 					class={[
 						buttonVariants({ variant: 'outline' }),
-						'max-w-156 grow cursor-pointer justify-start gap-3 border-none bg-gray-100 font-semibold text-gray-400 hover:bg-gray-200! hover:text-gray-600'
+						'max-w-156 grow cursor-pointer justify-start gap-3 border-none bg-white! font-semibold text-gray-400'
 					]}
 				>
 					<span class="grow text-start">Pretraga</span>
@@ -317,51 +352,25 @@
 				</Dialog.Content>
 			</Dialog.Root>
 		</div>
-		<Button variant="ghost" size="icon" class="text-muted-foreground">
+		<Button variant="ghost" size="icon" class="hidden bg-white text-muted-foreground sm:flex">
 			<IconGlobe />
 		</Button>
-		<Button variant="ghost" size="icon" class="text-muted-foreground">
+		<Button variant="ghost" size="icon" class="hidden bg-white text-muted-foreground sm:flex">
 			<IconProfile />
 		</Button>
-		<Button variant="ghost" size="icon" class="text-muted-foreground">
+		<Button variant="ghost" size="icon" class="bg-white text-muted-foreground">
 			<IconMenu />
 		</Button>
 	</div>
 </header>
 
-<div
-	bind:this={listElement}
-	class="scroll absolute top-15 right-0 bottom-0 left-0 overflow-y-scroll"
->
-	<div
-		class={{
-			'absolute top-0 bottom-0 left-0 w-160': true,
-			'w-full': compact,
-			hidden: compact && !list
-		}}
-	>
-		<div class="flex h-full w-full flex-wrap gap-8 p-8 pr-0">
-			{#each searchMapItems.values() as details, i}
-				<div
-					bind:this={listElements[i]}
-					data-id={details.propId.toString()}
-					style:height={`${listPopupHeight}px`}
-					style:width={`${listPopupWidth}px`}
-				>
-					<Item id={details.propId.toString()} data={searchMapItemDetails} />
-				</div>
-			{/each}
-		</div>
-	</div>
-</div>
-
-<footer class="fixed right-0 bottom-0 left-0 h-12 border-t bg-white p-2 shadow-sm sm:hidden">
-	<div class="flex w-full gap-4">
+<footer class="fixed right-0 bottom-0 left-0 h-15 bg-gray-100 p-2 shadow-sm sm:hidden">
+	<div class="flex h-full w-full items-center gap-4">
 		<Button
 			onclick={() => (list = true)}
 			variant="ghost"
 			class={{
-				'grow bg-gray-100 transition-all duration-150': true,
+				'grow bg-white transition-all duration-150': true,
 				'bg-[#df2d43] text-white': list
 			}}
 		>
@@ -371,7 +380,7 @@
 			onclick={() => (list = false)}
 			variant="ghost"
 			class={{
-				'grow bg-gray-100 transition-all duration-150': true,
+				'grow bg-white transition-all duration-150': true,
 				'bg-[#df2d43] text-white': !list
 			}}
 		>
