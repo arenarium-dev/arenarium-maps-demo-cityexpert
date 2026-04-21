@@ -7,15 +7,13 @@
 	import Tooltip from '$lib/marker/Tooltip.svelte';
 	import Popup from '$lib/marker/Popup.svelte';
 
-	import Item from '$lib/components/details/Item.svelte';
+	import Details from '$lib/components/Details.svelte';
 
-	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
 	import SvgLogo from '$lib/assets/logo.svg';
 
-	import IconSliders from '@lucide/svelte/icons/sliders-horizontal';
 	import IconPlus from '@lucide/svelte/icons/plus';
 	import IconMinus from '@lucide/svelte/icons/minus';
 	import IconList from '@lucide/svelte/icons/rows-3';
@@ -39,6 +37,7 @@
 	} from '$lib/types';
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
+	import Search from '$lib/components/Search.svelte';
 
 	const POPUP_WIDTH = 288;
 	const POPUP_HEIGHT = 258;
@@ -271,33 +270,34 @@
 <div
 	bind:this={listElement}
 	class={{
-		'scroll absolute top-15 right-0 bottom-15 left-0 z-1 overflow-y-scroll bg-white sm:top-0 sm:bottom-0 sm:z-0': true,
+		'scroll absolute top-15 right-0 bottom-15 left-0 z-1 overflow-y-scroll bg-gray-100 sm:top-0 sm:bottom-0 sm:z-0': true,
 		hidden: compact && !list
 	}}
 >
 	<div
 		class={{
-			'absolute top-0 bottom-0 left-0 w-160': true,
+			'absolute top-0 right-0 bottom-0 w-156': true,
 			'w-full': compact
 		}}
 	>
-		<div class="flex h-full w-full flex-wrap gap-8 p-4 sm:p-8 sm:pr-0">
+		<div class="flex h-full w-full flex-wrap gap-8 p-4 sm:px-0 sm:py-8">
 			{#each searchMapItems.values() as details, i}
 				<div
 					bind:this={listElements[i]}
 					data-id={details.propId.toString()}
 					style:height={`${listPopupHeight}px`}
 					style:width={`${listPopupWidth}px`}
+					class="rounded-xl bg-white p-2 shadow-sm"
 				>
-					<Item id={details.propId.toString()} data={searchMapItemDetails} />
+					<Details id={details.propId.toString()} data={searchMapItemDetails} />
 				</div>
 			{/each}
 		</div>
 	</div>
 </div>
 
-<div class="fixed top-15 right-0 bottom-15 left-0 sm:top-23 sm:bottom-0 sm:left-160 sm:p-8">
-	<div id="map" class="absolute h-full w-full sm:rounded-xl"></div>
+<div class="fixed top-15 right-0 bottom-15 left-0 sm:top-23 sm:right-158 sm:bottom-0 sm:p-8">
+	<div id="map" class="absolute h-full w-full sm:rounded-xl sm:border sm:shadow-sm"></div>
 	<div class="absolute top-4 right-4 sm:top-12 sm:right-12">
 		<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
 			<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
@@ -310,8 +310,10 @@
 	</div>
 </div>
 
-<header class="fixed top-0 right-0 left-0 z-1 shadow-sm sm:left-160 sm:p-8 sm:shadow-none">
-	<div class="flex h-15 w-full items-center gap-4 overflow-auto bg-gray-100 px-4 sm:rounded-xl">
+<header class="fixed top-0 right-0 left-0 z-1 shadow-sm sm:right-158 sm:p-8 sm:shadow-none">
+	<div
+		class="flex h-15 w-full items-center gap-4 overflow-auto bg-white px-4 shadow-sm sm:rounded-xl"
+	>
 		<a
 			href="https://cityexpert.rs"
 			class="flex h-8 items-center justify-center rounded-lg bg-white sm:bg-transparent"
@@ -323,41 +325,15 @@
 			{/if}
 		</a>
 		<div class="flex grow items-center justify-center">
-			<Dialog.Root>
-				<Dialog.Trigger
-					type="button"
-					class={[
-						buttonVariants({ variant: 'outline' }),
-						'max-w-156 grow cursor-pointer justify-start gap-3 border-none bg-white! font-semibold text-gray-400'
-					]}
-				>
-					<span class="grow text-start">Pretraga</span>
-					<IconSliders class="w-5" strokeWidth={2.5} />
-				</Dialog.Trigger>
-				<Dialog.Content class="sm:max-w-100">
-					<Dialog.Header>
-						<Dialog.Title class="flex items-center gap-2">Pretraga</Dialog.Title>
-						<Dialog.Description>
-							Make changes to your profile here. Click save when you&apos;re done.
-						</Dialog.Description>
-					</Dialog.Header>
-					<div class="grid gap-4"></div>
-					<Dialog.Footer>
-						<Dialog.Close type="button" class={buttonVariants({ variant: 'outline' })}>
-							Resetuj
-						</Dialog.Close>
-						<Button type="submit">Pretraži</Button>
-					</Dialog.Footer>
-				</Dialog.Content>
-			</Dialog.Root>
+			<Search />
 		</div>
-		<Button variant="ghost" size="icon" class="hidden bg-white text-muted-foreground sm:flex">
+		<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
 			<IconGlobe />
 		</Button>
-		<Button variant="ghost" size="icon" class="hidden bg-white text-muted-foreground sm:flex">
+		<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
 			<IconProfile />
 		</Button>
-		<Button variant="ghost" size="icon" class="bg-white text-muted-foreground">
+		<Button variant="ghost" size="icon" class="bg-white! text-muted-foreground">
 			<IconMenu />
 		</Button>
 	</div>
