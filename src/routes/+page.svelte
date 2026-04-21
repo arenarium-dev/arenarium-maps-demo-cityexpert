@@ -7,6 +7,8 @@
 	import Tooltip from '$lib/marker/Tooltip.svelte';
 	import Popup from '$lib/marker/Popup.svelte';
 
+	import Item from '$lib/components/details/Item.svelte';
+
 	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -18,6 +20,9 @@
 	import IconMinus from '@lucide/svelte/icons/minus';
 	import IconList from '@lucide/svelte/icons/rows-3';
 	import IconMap from '@lucide/svelte/icons/map';
+	import IconGlobe from '@lucide/svelte/icons/globe';
+	import IconProfile from '@lucide/svelte/icons/user';
+	import IconMenu from '@lucide/svelte/icons/menu';
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
@@ -37,7 +42,7 @@
 
 	const POPUP_WIDTH = 288;
 	const POPUP_HEIGHT = 258;
-	const POPUP_RADIUS = 12;
+	const POPUP_RADIUS = 16;
 
 	let mapLibre: maplibregl.Map | undefined;
 	let mapProvider: MaplibreProvider | undefined;
@@ -180,9 +185,10 @@
 				threshold: 0
 			});
 
+			console.log('Connected list observer to:', listElements.length);
 			// Observe list elements for intersection changes
 			for (const element of listElements) {
-				listObserver?.observe(element);
+				listObserver.observe(element);
 			}
 		}
 	}
@@ -242,105 +248,114 @@
 	}
 
 	async function updateDetails(id: string): Promise<void> {
-		const detailsLoading = searchMapItemDetailsLoading.get(id) ?? false;
-		if (detailsLoading) return;
+		const loading = searchMapItemDetailsLoading.get(id) ?? false;
+		if (loading) return;
 
-		const detailsExists = searchMapItemDetails.has(id);
-		if (detailsExists) return;
+		const exists = searchMapItemDetails.has(id);
+		if (exists) return;
 
 		try {
 			searchMapItemDetailsLoading.set(id, true);
 
-			const detailsUrl = `api/details?id=${id}`;
-			const detailsResponse = await fetch(detailsUrl);
-			if (!detailsResponse.ok) return;
+			const url = `api/details?id=${id}`;
+			const response = await fetch(url);
+			if (!response.ok) return;
 
-			const detailsData = await detailsResponse.json();
-			searchMapItemDetails.set(id, detailsData);
+			const details = await response.json();
+			searchMapItemDetails.set(id, details);
 		} finally {
 			searchMapItemDetailsLoading.set(id, false);
 		}
 	}
 </script>
 
-<div class="absolute top-12 right-0 bottom-12 left-0 bg-gray-200 sm:top-0 sm:bottom-0 sm:left-156">
-	<div id="map" class="absolute top-0 left-0 h-full w-full"></div>
-	<div class="absolute right-4 bottom-12">
+<div class="fixed top-15 right-0 bottom-0 left-0 z-1 p-8 sm:right-2 sm:bottom-0 sm:left-160">
+	<div id="map" class="absolute h-full w-full rounded-xl"></div>
+	<div class="absolute top-12 right-12">
 		<ButtonGroup.Root orientation="vertical" class="rounded-lg shadow-md">
-			<Button onclick={onZoomIn} variant="ghost" class="size-10 border border-gray-100 bg-white">
+			<Button onclick={onZoomIn} variant="ghost" class="size-8 border border-gray-100 bg-white">
 				<IconPlus class="w-4" />
 			</Button>
-			<Button onclick={onZoomOut} variant="ghost" class="size-10 border border-gray-100 bg-white">
+			<Button onclick={onZoomOut} variant="ghost" class="size-8 border border-gray-100 bg-white">
 				<IconMinus class="w-4" />
 			</Button>
 		</ButtonGroup.Root>
 	</div>
 </div>
 
-<header class="absolute top-0 left-0 z-1 h-12 w-full border-b bg-white p-2 shadow-sm sm:w-156">
-	<div class="flex items-center gap-4 overflow-auto">
-		<a href="https://cityexpert.rs" class="ml-2">
-			<img src={SvgLogo} alt="logo" class="w-32" />
+<header class="fixed top-0 left-0 z-1 h-15 w-full border-b border-gray-100 bg-white">
+	<div class="flex h-full w-full items-center gap-4 overflow-auto px-6">
+		<a href="https://cityexpert.rs" class="w-37.5">
+			<img src={SvgLogo} alt="logo" width="200" height="auto" />
 		</a>
-		<Dialog.Root>
-			<Dialog.Trigger
-				type="button"
-				class={[
-					buttonVariants({ variant: 'outline' }),
-					'grow cursor-pointer justify-start gap-3 border-none bg-gray-100 font-semibold text-gray-400 hover:bg-gray-200! hover:text-gray-600'
-				]}
-			>
-				<span class="grow text-start">Pretraga</span>
-				<IconSliders class="w-5" strokeWidth={2.5} />
-			</Dialog.Trigger>
-			<Dialog.Content class="sm:max-w-100">
-				<Dialog.Header>
-					<Dialog.Title class="flex items-center gap-2">Pretraga</Dialog.Title>
-					<Dialog.Description>
-						Make changes to your profile here. Click save when you&apos;re done.
-					</Dialog.Description>
-				</Dialog.Header>
-				<div class="grid gap-4"></div>
-				<Dialog.Footer>
-					<Dialog.Close type="button" class={buttonVariants({ variant: 'outline' })}>
-						Resetuj
-					</Dialog.Close>
-					<Button type="submit">Pretraži</Button>
-				</Dialog.Footer>
-			</Dialog.Content>
-		</Dialog.Root>
+		<div class="flex grow items-center justify-center">
+			<Dialog.Root>
+				<Dialog.Trigger
+					type="button"
+					class={[
+						buttonVariants({ variant: 'outline' }),
+						'max-w-156 grow cursor-pointer justify-start gap-3 border-none bg-gray-100 font-semibold text-gray-400 hover:bg-gray-200! hover:text-gray-600'
+					]}
+				>
+					<span class="grow text-start">Pretraga</span>
+					<IconSliders class="w-5" strokeWidth={2.5} />
+				</Dialog.Trigger>
+				<Dialog.Content class="sm:max-w-100">
+					<Dialog.Header>
+						<Dialog.Title class="flex items-center gap-2">Pretraga</Dialog.Title>
+						<Dialog.Description>
+							Make changes to your profile here. Click save when you&apos;re done.
+						</Dialog.Description>
+					</Dialog.Header>
+					<div class="grid gap-4"></div>
+					<Dialog.Footer>
+						<Dialog.Close type="button" class={buttonVariants({ variant: 'outline' })}>
+							Resetuj
+						</Dialog.Close>
+						<Button type="submit">Pretraži</Button>
+					</Dialog.Footer>
+				</Dialog.Content>
+			</Dialog.Root>
+		</div>
+		<Button variant="ghost" size="icon" class="text-muted-foreground">
+			<IconGlobe />
+		</Button>
+		<Button variant="ghost" size="icon" class="text-muted-foreground">
+			<IconProfile />
+		</Button>
+		<Button variant="ghost" size="icon" class="text-muted-foreground">
+			<IconMenu />
+		</Button>
 	</div>
 </header>
 
 <div
-	class={{
-		'absolute top-12 bottom-0 left-0 w-156 bg-gray-100 shadow-sm': true,
-		'w-full': compact,
-		hidden: compact && !list
-	}}
+	bind:this={listElement}
+	class="scroll absolute top-15 right-0 bottom-0 left-0 overflow-y-scroll"
 >
 	<div
-		bind:this={listElement}
-		class="scroll flex h-full w-full flex-wrap gap-4 overflow-y-scroll p-4 pr-0"
+		class={{
+			'absolute top-0 bottom-0 left-0 w-160': true,
+			'w-full': compact,
+			hidden: compact && !list
+		}}
 	>
-		{#each searchMapItems.values() as details, i}
-			<div
-				bind:this={listElements[i]}
-				data-id={details.propId.toString()}
-				class="h-[{listPopupHeight}px] w-[{listPopupWidth}px] rounded-xl bg-white shadow-sm transition-all duration-150 ease-in-out hover:shadow-md"
-			>
-				<Popup
-					id={details.propId.toString()}
-					height={listPopupHeight}
-					width={listPopupWidth}
-					data={searchMapItemDetails}
-				/>
-			</div>
-		{/each}
+		<div class="flex h-full w-full flex-wrap gap-8 p-8 pr-0">
+			{#each searchMapItems.values() as details, i}
+				<div
+					bind:this={listElements[i]}
+					data-id={details.propId.toString()}
+					style:height={`${listPopupHeight}px`}
+					style:width={`${listPopupWidth}px`}
+				>
+					<Item id={details.propId.toString()} data={searchMapItemDetails} />
+				</div>
+			{/each}
+		</div>
 	</div>
 </div>
 
-<footer class="absolute right-0 bottom-0 left-0 h-12 border-t bg-white p-2 shadow-sm sm:hidden">
+<footer class="fixed right-0 bottom-0 left-0 h-12 border-t bg-white p-2 shadow-sm sm:hidden">
 	<div class="flex w-full gap-4">
 		<Button
 			onclick={() => (list = true)}
