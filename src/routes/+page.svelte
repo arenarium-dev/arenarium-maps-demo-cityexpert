@@ -267,20 +267,83 @@
 	}
 </script>
 
-<div
-	bind:this={listElement}
-	class={{
-		'scroll absolute top-15 right-0 bottom-15 left-0 z-1 overflow-y-scroll bg-gray-100 sm:top-0 sm:bottom-0 sm:z-0': true,
-		hidden: compact && !list
-	}}
->
+<div class="fixed top-0 left-0 flex h-full w-full bg-gray-100">
+	<div class="flex grow flex-col sm:gap-8 sm:p-8">
+		<header
+			class="z-1 flex h-15 w-full items-center gap-4 overflow-auto bg-white px-4 shadow-sm sm:rounded-xl"
+		>
+			<a
+				href="https://cityexpert.rs"
+				class="flex h-8 items-center justify-center rounded-lg bg-white sm:bg-transparent"
+			>
+				{#if compact}
+					<img src="/favicon.ico" alt="logo" class="m-2" />
+				{:else}
+					<img src={SvgLogo} alt="logo" class="mx-3 mt-1 w-30" />
+				{/if}
+			</a>
+			<div class="flex grow items-center justify-center">
+				<Search />
+			</div>
+			<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
+				<IconGlobe />
+			</Button>
+			<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
+				<IconProfile />
+			</Button>
+			<Button variant="ghost" size="icon" class="bg-white! text-muted-foreground">
+				<IconMenu />
+			</Button>
+		</header>
+
+		<div class="relative grow">
+			<div id="map" class="absolute h-full w-full sm:rounded-xl sm:border sm:shadow-sm"></div>
+			<div class="absolute top-4 right-4">
+				<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
+					<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
+						<IconPlus class="w-4" />
+					</Button>
+					<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
+						<IconMinus class="w-4" />
+					</Button>
+				</ButtonGroup.Root>
+			</div>
+		</div>
+
+		<footer class="z-1 h-15 w-full border-t bg-gray-100 p-2 sm:hidden">
+			<div class="flex h-full w-full items-center gap-4">
+				<Button
+					onclick={() => (list = true)}
+					variant="ghost"
+					class={{
+						'grow bg-white transition-all duration-150': true,
+						'bg-[#df2d43] text-white': list
+					}}
+				>
+					<IconList /> Lista
+				</Button>
+				<Button
+					onclick={() => (list = false)}
+					variant="ghost"
+					class={{
+						'grow bg-white transition-all duration-150': true,
+						'bg-[#df2d43] text-white': !list
+					}}
+				>
+					<IconMap /> Mapa
+				</Button>
+			</div>
+		</footer>
+	</div>
+
 	<div
+		bind:this={listElement}
 		class={{
-			'absolute top-0 right-0 bottom-0 w-156': true,
-			'w-full': compact
+			'scroll absolute top-15 right-0 bottom-15 left-0 overflow-y-scroll bg-gray-100 sm:relative sm:top-0 sm:bottom-0 sm:z-0 sm:w-160': true,
+			hidden: compact && !list
 		}}
 	>
-		<div class="flex h-full w-full flex-wrap gap-8 p-4 sm:px-0 sm:py-8">
+		<div class="flex h-full w-full flex-wrap gap-4 p-4 sm:gap-8 sm:px-0 sm:py-8">
 			{#each searchMapItems.values() as details, i}
 				<div
 					bind:this={listElements[i]}
@@ -295,74 +358,6 @@
 		</div>
 	</div>
 </div>
-
-<div class="fixed top-15 right-0 bottom-15 left-0 sm:top-23 sm:right-158 sm:bottom-0 sm:p-8">
-	<div id="map" class="absolute h-full w-full sm:rounded-xl sm:border sm:shadow-sm"></div>
-	<div class="absolute top-4 right-4 sm:top-12 sm:right-12">
-		<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
-			<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
-				<IconPlus class="w-4" />
-			</Button>
-			<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
-				<IconMinus class="w-4" />
-			</Button>
-		</ButtonGroup.Root>
-	</div>
-</div>
-
-<header class="fixed top-0 right-0 left-0 z-1 shadow-sm sm:right-158 sm:p-8 sm:shadow-none">
-	<div
-		class="flex h-15 w-full items-center gap-4 overflow-auto bg-white px-4 shadow-sm sm:rounded-xl"
-	>
-		<a
-			href="https://cityexpert.rs"
-			class="flex h-8 items-center justify-center rounded-lg bg-white sm:bg-transparent"
-		>
-			{#if compact}
-				<img src="/favicon.ico" alt="logo" class="m-2" />
-			{:else}
-				<img src={SvgLogo} alt="logo" class="mx-3 mt-1 w-30" />
-			{/if}
-		</a>
-		<div class="flex grow items-center justify-center">
-			<Search />
-		</div>
-		<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
-			<IconGlobe />
-		</Button>
-		<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
-			<IconProfile />
-		</Button>
-		<Button variant="ghost" size="icon" class="bg-white! text-muted-foreground">
-			<IconMenu />
-		</Button>
-	</div>
-</header>
-
-<footer class="fixed right-0 bottom-0 left-0 h-15 bg-gray-100 p-2 shadow-sm sm:hidden">
-	<div class="flex h-full w-full items-center gap-4">
-		<Button
-			onclick={() => (list = true)}
-			variant="ghost"
-			class={{
-				'grow bg-white transition-all duration-150': true,
-				'bg-[#df2d43] text-white': list
-			}}
-		>
-			<IconList /> Lista
-		</Button>
-		<Button
-			onclick={() => (list = false)}
-			variant="ghost"
-			class={{
-				'grow bg-white transition-all duration-150': true,
-				'bg-[#df2d43] text-white': !list
-			}}
-		>
-			<IconMap /> Mapa
-		</Button>
-	</div>
-</footer>
 
 <style>
 	.scroll {
