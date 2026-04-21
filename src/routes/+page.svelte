@@ -185,7 +185,6 @@
 				threshold: 0
 			});
 
-			console.log('Connected list observer to:', listElements.length);
 			// Observe list elements for intersection changes
 			for (const element of listElements) {
 				listObserver.observe(element);
