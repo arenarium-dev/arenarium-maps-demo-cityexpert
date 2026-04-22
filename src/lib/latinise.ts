@@ -1,7 +1,3 @@
-// Source - https://stackoverflow.com/a/9667817
-// Posted by Ed., modified by community. See post 'Timeline' for change history
-// Retrieved 2026-04-20, License - CC BY-SA 4.0
-
 const conversions = {
 	Á: 'A',
 	Ă: 'A',

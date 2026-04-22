@@ -10,10 +10,15 @@
 	import IconSliders from '@lucide/svelte/icons/sliders-horizontal';
 	import IconEuro from '@lucide/svelte/icons/euro';
 
+	import { getDefaultSearch } from '$lib/search';
+	import type { SearchRequest } from '$lib/types';
+
+	let { search = $bindable() }: { search: SearchRequest } = $props();
+
 	// Categories
 	const categories = [
-		{ value: 'izdavanje', label: 'Izdavanje stanova' },
-		{ value: 'prodaja', label: 'Prodaja stanova' }
+		{ value: 'r', label: 'Izdavanje stanova' },
+		{ value: 's', label: 'Prodaja stanova' }
 	];
 	let category = $state(categories[0].value);
 	let categoryLabel = $derived(categories.find((c) => c.value === category)?.label ?? '');
@@ -31,10 +36,10 @@
 	let sorts = [
 		{ value: 'datedsc', label: 'Najnoviji' },
 		{ value: 'dateasc', label: 'Najstariji' },
-		{ value: 'pricedsc', label: 'Najjeftiniji' },
-		{ value: 'priceasc', label: 'Najskuplji' },
-		{ value: 'areadsc', label: 'Najmanji' },
-		{ value: 'areaasc', label: 'Najveći' }
+		{ value: 'priceasc', label: 'Najjeftiniji' },
+		{ value: 'pricedsc', label: 'Najskuplji' },
+		{ value: 'areaasc', label: 'Najmanji' },
+		{ value: 'areadsc', label: 'Najveći' }
 	];
 	let sort = $state<string>(sorts[0].value);
 	let sortLabel = $derived(sorts.find((s) => s.value === sort)?.label ?? '');
@@ -96,10 +101,23 @@
 	let areaFrom = $state<number | null>(null);
 	let areaTo = $state<number | null>(null);
 
-	// Label
-	let label = $state<string>('');
+	// State
+	let label = $state<string>(getLabel());
 
 	onMount(() => {
+		// Initialize state from search request
+		category = search.rentOrSale;
+		city = search.cityId.toString();
+		sort = search.sort;
+		locationValues = search.polygonsArray ?? [];
+		typeValues = search.ptId?.map((t) => t.toString()) ?? [];
+		roomValues = search.structure ?? [];
+		priceFrom = search.minPrice ?? null;
+		priceTo = search.maxPrice ?? null;
+		areaFrom = search.minSize ?? null;
+		areaTo = search.maxSize ?? null;
+
+		// Set new label
 		label = getLabel();
 	});
 
@@ -115,11 +133,28 @@
 		return label;
 	}
 
-	function onOpenChange() {
+	function onOpenChange(open: boolean) {
+		if (open == false) {
+			search = {
+				cityId: parseInt(city),
+				rentOrSale: category,
+				sort: sort,
+				polygonsArray: locationValues,
+				ptId: typeValues.map((t) => parseInt(t)),
+				structure: roomValues,
+				minPrice: priceFrom ?? undefined,
+				maxPrice: priceTo ?? undefined,
+				minSize: areaFrom ?? undefined,
+				maxSize: areaTo ?? undefined
+			};
+			console.log(search);
+		}
+
 		label = getLabel();
 	}
 
 	function onReset() {
+		search = getDefaultSearch();
 		label = getLabel();
 	}
 </script>
@@ -264,7 +299,7 @@
 			</div>
 		</div>
 		<Dialog.Footer>
-			<Button variant="outline">Resetuj</Button>
+			<Button onclick={onReset} variant="outline">Resetuj</Button>
 			<Dialog.Close type="button" class={buttonVariants({ variant: 'default' })}>
 				Pretraži
 			</Dialog.Close>

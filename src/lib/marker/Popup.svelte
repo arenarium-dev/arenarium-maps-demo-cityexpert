@@ -3,13 +3,13 @@
 
 	import Details from '$lib/components/Details.svelte';
 
-	import type { MapSearchItemDetails } from '$lib/types';
+	import type { SearchItemDetails } from '$lib/types';
 
 	let props: {
 		id: string;
 		width: number;
 		height: number;
-		data: SvelteMap<string, MapSearchItemDetails>;
+		data: SvelteMap<string, SearchItemDetails>;
 	} = $props();
 </script>
 

@@ -3,14 +3,14 @@
 	import { fade } from 'svelte/transition';
 	import type { SvelteMap } from 'svelte/reactivity';
 
-	import type { MapSearchItemDetails } from '$lib/types';
+	import type { SearchItemDetails } from '$lib/types';
 
 	let props: {
 		id: string;
 		spacing: number;
 		width: number;
 		height: number;
-		data: SvelteMap<string, MapSearchItemDetails>;
+		data: SvelteMap<string, SearchItemDetails>;
 	} = $props();
 
 	let spacing = untrack(() => props.spacing * 4);
@@ -44,7 +44,7 @@
 			</div>
 			<!-- <div class="divider">•</div> -->
 			<div class="rounded-full bg-gray-100 px-2 text-center whitespace-nowrap">
-				<span>{details.structure}</span>
+				<span>{details.structure.slice(0, 3)}</span>
 			</div>
 		</div>
 	</div>

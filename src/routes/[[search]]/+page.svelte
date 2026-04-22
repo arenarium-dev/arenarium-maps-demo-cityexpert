@@ -2,12 +2,16 @@
 	import { onMount, mount, onDestroy, tick } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { outerWidth } from 'svelte/reactivity/window';
+	import { page } from '$app/state';
+
+	import { getDefaultSearch } from '$lib/search';
 
 	import Pin from '$lib/marker/Pin.svelte';
 	import Tooltip from '$lib/marker/Tooltip.svelte';
 	import Popup from '$lib/marker/Popup.svelte';
 
 	import Details from '$lib/components/Details.svelte';
+	import Search from '$lib/components/Search.svelte';
 
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
@@ -29,37 +33,33 @@
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 
-	import type {
-		MapSearchItem,
-		MapSearchItemDetails,
-		MapSearchRequest,
-		MapSearchResult
-	} from '$lib/types';
+	import type { SearchItem, SearchItemDetails, SearchRequest, SearchResult } from '$lib/types';
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
-	import Search from '$lib/components/Search.svelte';
+	import { goto } from '$app/navigation';
 
 	const POPUP_WIDTH = 288;
 	const POPUP_HEIGHT = 258;
 	const POPUP_RADIUS = 16;
 
-	let mapLibre: maplibregl.Map | undefined;
-	let mapProvider: MaplibreProvider | undefined;
-	let mapManager: MapManager | undefined;
-
-	let searchMapMarkers: Map<string, MapMarkerProperties> = new Map();
-	let searchMapItems: SvelteMap<string, MapSearchItem> = new SvelteMap();
-	let searchMapItemDetails: SvelteMap<string, MapSearchItemDetails> = new SvelteMap();
-	let searchMapItemDetailsLoading: Map<string, boolean> = new Map();
-
 	let width = $derived(outerWidth.current ?? 0);
 	let compact = $derived(width <= 640);
 	let spacing = $derived(compact ? 0.8 : 1);
 
-	let list = $state(false);
-	let listPopupWidth = $derived(compact && width ? width - 32 : POPUP_WIDTH);
-	let listPopupHeight = $derived(POPUP_HEIGHT);
+	let mapLibre: maplibregl.Map | undefined;
+	let mapProvider: MaplibreProvider | undefined;
+	let mapManager: MapManager | undefined;
 
+	let searchPage = $state<SearchRequest>();
+	let searchDialog = $state<SearchRequest>();
+	let searchMarkers: Map<string, MapMarkerProperties> = new Map();
+	let searchItems: SvelteMap<string, SearchItem> = new SvelteMap();
+	let searchItemDetails: SvelteMap<string, SearchItemDetails> = new SvelteMap();
+	let searchItemDetailsLoading: Map<string, boolean> = new Map();
+
+	let list = $state(false);
+	let listElementWidth = $derived(compact && width ? width - 32 : POPUP_WIDTH);
+	let listElementHeight = $derived(POPUP_HEIGHT);
 	let listElement = $state<HTMLElement>();
 	let listElements = $state<HTMLElement[]>([]);
 	let listObserver: IntersectionObserver | undefined;
@@ -86,16 +86,38 @@
 		// Access the maplibre instance for direct map interactions
 		mapLibre = mapProvider.getMap();
 
-		await search();
+		// Parse the search parameter from the URL if present
+		const searchParam = page.params.search;
+		const search = searchParam ? JSON.parse(atob(searchParam)) : getDefaultSearch();
+		searchPage = search;
+		searchDialog = search;
+
+		// Update the search items based on the parsed or default search request
+		await updateSearchItems(search);
 	});
 
 	onDestroy(() => {
+		// Clean up the list observer when the component is destroyed
 		listObserver?.disconnect();
 	});
 
 	$effect(() => {
+		// Update search items when compact mode changes
 		if (compact || !compact) {
-			search();
+			if (searchPage) updateSearchItems(searchPage);
+		}
+	});
+
+	$effect(() => {
+		// Check if the search dialog is initialized
+		if (!searchDialog || !searchPage) return;
+
+		// Compare the current search dialog with the default search and update the URL if they differ
+		const oldSearch = btoa(JSON.stringify(searchPage));
+		const newSearch = btoa(JSON.stringify(searchDialog));
+		if (oldSearch !== newSearch) {
+			searchPage = searchDialog;
+			goto(`/${newSearch}`);
 		}
 	});
 
@@ -109,36 +131,88 @@
 		mapLibre.zoomOut();
 	}
 
-	async function search() {
+	async function onInitializePin(id: string, element: HTMLElement): Promise<void> {
+		const item = searchItems.get(id);
+		if (!item) throw new Error('Item not found');
+
+		mount(Pin, { target: element, props: { type: item.ptId } });
+	}
+
+	async function onInitializeTooltip(id: string, element: HTMLElement): Promise<void> {
+		const marker = searchMarkers.get(id);
+		if (!marker) throw new Error('Marker not found');
+
+		const dimensions = marker.tooltip?.dimensions;
+		if (!dimensions) throw new Error('Tooltip style not found');
+
+		const width = dimensions.width;
+		const height = dimensions.height;
+		const data = searchItemDetails;
+
+		mount(Tooltip, {
+			target: element,
+			props: { id, spacing, width, height, data }
+		});
+
+		if (searchItemDetails.get(id) === undefined) await updateSearchDetails(id);
+	}
+
+	async function onInitializePopup(id: string, element: HTMLElement): Promise<void> {
+		const marker = searchMarkers.get(id);
+		if (!marker) throw new Error('Marker not found');
+
+		const dimensions = marker.popup?.dimensions;
+		if (!dimensions) throw new Error('Popup style not found');
+
+		const width = dimensions.width;
+		const height = dimensions.height;
+		const data = searchItemDetails;
+
+		mount(Popup, {
+			target: element,
+			props: { id, spacing, width, height, data }
+		});
+
+		if (searchItemDetails.get(id) === undefined) await updateSearchDetails(id);
+	}
+
+	function onListObserve(entries: IntersectionObserverEntry[]) {
+		for (const entry of entries) {
+			if (entry.isIntersecting) {
+				const id = entry.target.getAttribute('data-id');
+				if (id) updateSearchDetails(id);
+			}
+		}
+	}
+
+	async function updateSearchItems(search: SearchRequest) {
 		if (!mapManager) return;
 
-		const searchRequest: MapSearchRequest = {
-			ptId: [1, 2, 5, 4],
-			cityId: 1,
-			rentOrSale: 'r',
-			searchSource: 'regular',
-			sort: 'pricedsc',
-			furnished: [1],
-			isFeatured: true
-		};
-
-		const searchUrl = `/api/search?req=${encodeURIComponent(JSON.stringify(searchRequest))}`;
+		const searchUrl = `/api/search?req=${encodeURIComponent(JSON.stringify(search))}`;
 		const searchResponse = await fetch(searchUrl);
 		if (!searchResponse.ok) throw new Error('Failed to search');
-
-		const searchResult: MapSearchResult = await searchResponse.json();
+		const searchResult: SearchResult = await searchResponse.json();
 
 		// Clear existing markers
-		searchMapMarkers.clear();
-		searchMapItems.clear();
-		searchMapItemDetails.clear();
+		searchMarkers.clear();
+		searchItems.clear();
+		searchItemDetails.clear();
 
 		// Clear map markers
 		mapManager.clear();
 
+		// Track added coordinates to avoid duplicates
+		let coordinateSet = new Set<string>();
+
 		// Create markers
 		for (let i = 0; i < searchResult.length; i++) {
 			const item = searchResult[i];
+
+			// Check if the marker with the same coordinates is already added
+			const coordinateKey = item.mapLat + ',' + item.mapLng;
+			if (coordinateSet.has(coordinateKey)) continue;
+			coordinateSet.add(coordinateKey);
+
 			const marker: MapMarkerProperties = {
 				id: item.propId.toString(),
 				rank: searchResult.length - i,
@@ -164,12 +238,12 @@
 				}
 			};
 
-			searchMapItems.set(item.propId.toString(), item);
-			searchMapMarkers.set(item.propId.toString(), marker);
+			searchItems.set(item.propId.toString(), item);
+			searchMarkers.set(item.propId.toString(), marker);
 		}
 
 		// Update map markers
-		mapManager.updateMarkers(Array.from(searchMapMarkers.values()));
+		mapManager.updateMarkers(Array.from(searchMarkers.values()));
 
 		// Wait for the next tick to ensure elements are in the DOM
 		await tick();
@@ -191,78 +265,24 @@
 		}
 	}
 
-	async function onInitializePin(id: string, element: HTMLElement): Promise<void> {
-		const item = searchMapItems.get(id);
-		if (!item) throw new Error('Item not found');
-
-		mount(Pin, { target: element, props: { type: item.ptId } });
-	}
-
-	async function onInitializeTooltip(id: string, element: HTMLElement): Promise<void> {
-		const marker = searchMapMarkers.get(id);
-		if (!marker) throw new Error('Marker not found');
-
-		const dimensions = marker.tooltip?.dimensions;
-		if (!dimensions) throw new Error('Tooltip style not found');
-
-		const width = dimensions.width;
-		const height = dimensions.height;
-		const data = searchMapItemDetails;
-
-		mount(Tooltip, {
-			target: element,
-			props: { id, spacing, width, height, data }
-		});
-
-		if (searchMapItemDetails.get(id) === undefined) await updateDetails(id);
-	}
-
-	async function onInitializePopup(id: string, element: HTMLElement): Promise<void> {
-		const marker = searchMapMarkers.get(id);
-		if (!marker) throw new Error('Marker not found');
-
-		const dimensions = marker.popup?.dimensions;
-		if (!dimensions) throw new Error('Popup style not found');
-
-		const width = dimensions.width;
-		const height = dimensions.height;
-		const data = searchMapItemDetails;
-
-		mount(Popup, {
-			target: element,
-			props: { id, spacing, width, height, data }
-		});
-
-		if (searchMapItemDetails.get(id) === undefined) await updateDetails(id);
-	}
-
-	function onListObserve(entries: IntersectionObserverEntry[]) {
-		for (const entry of entries) {
-			if (entry.isIntersecting) {
-				const id = entry.target.getAttribute('data-id');
-				if (id) updateDetails(id);
-			}
-		}
-	}
-
-	async function updateDetails(id: string): Promise<void> {
-		const loading = searchMapItemDetailsLoading.get(id) ?? false;
+	async function updateSearchDetails(id: string): Promise<void> {
+		const loading = searchItemDetailsLoading.get(id) ?? false;
 		if (loading) return;
 
-		const exists = searchMapItemDetails.has(id);
+		const exists = searchItemDetails.has(id);
 		if (exists) return;
 
 		try {
-			searchMapItemDetailsLoading.set(id, true);
+			searchItemDetailsLoading.set(id, true);
 
 			const url = `api/details?id=${id}`;
 			const response = await fetch(url);
 			if (!response.ok) return;
 
 			const details = await response.json();
-			searchMapItemDetails.set(id, details);
+			searchItemDetails.set(id, details);
 		} finally {
-			searchMapItemDetailsLoading.set(id, false);
+			searchItemDetailsLoading.set(id, false);
 		}
 	}
 </script>
@@ -282,9 +302,11 @@
 					<img src={SvgLogo} alt="logo" class="mx-3 mt-1 w-30" />
 				{/if}
 			</a>
-			<div class="flex grow items-center justify-center">
-				<Search />
-			</div>
+			{#if searchDialog}
+				<div class="flex grow items-center justify-center">
+					<Search bind:search={searchDialog} />
+				</div>
+			{/if}
 			<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
 				<IconGlobe />
 			</Button>
@@ -344,15 +366,15 @@
 		}}
 	>
 		<div class="flex h-full w-full flex-wrap gap-4 p-4 sm:gap-8 sm:px-0 sm:py-8">
-			{#each searchMapItems.values() as details, i}
+			{#each searchItems.values() as details, i}
 				<div
 					bind:this={listElements[i]}
 					data-id={details.propId.toString()}
-					style:height={`${listPopupHeight}px`}
-					style:width={`${listPopupWidth}px`}
-					class="rounded-xl bg-white p-2 shadow-sm"
+					style:height={`${listElementHeight}px`}
+					style:width={`${listElementWidth}px`}
+					class="rounded-xl bg-white p-2 shadow-sm transition-all duration-150 hover:shadow-md"
 				>
-					<Details id={details.propId.toString()} data={searchMapItemDetails} />
+					<Details id={details.propId.toString()} data={searchItemDetails} />
 				</div>
 			{/each}
 		</div>

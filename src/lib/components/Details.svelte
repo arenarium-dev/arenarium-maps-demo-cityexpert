@@ -8,11 +8,12 @@
 	import IconChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	import { latinise } from '$lib/latinise';
-	import type { MapSearchItemDetails } from '$lib/types';
+	import { getSearchFurnishedLabel } from '$lib/search';
+	import type { SearchItemDetails } from '$lib/types';
 
 	let props: {
 		id: string;
-		data: SvelteMap<string, MapSearchItemDetails>;
+		data: SvelteMap<string, SearchItemDetails>;
 	} = $props();
 
 	let details = $derived(props.data.get(props.id));
@@ -207,7 +208,7 @@
 					<span>{details.structure}</span>
 				</div>
 				<div class="rounded-full bg-gray-100 px-2 whitespace-nowrap">
-					<span>Namešten</span>
+					<span>{getSearchFurnishedLabel(details.onsite.basInfFurnished)}</span>
 				</div>
 			</div>
 		</a>

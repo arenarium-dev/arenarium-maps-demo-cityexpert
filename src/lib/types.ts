@@ -1,14 +1,18 @@
-export interface MapSearchRequest {
+export interface SearchRequest {
+	rentOrSale: string;
 	cityId: number;
-	rentOrSale: 'r' | 's';
+	sort: string;
+	polygonsArray?: string[];
 	ptId?: number[];
-	searchSource?: 'regular';
-	sort?: 'datedsc' | 'dateasc' | 'pricedsc' | 'priceasc';
-	isFeatured?: boolean;
-	furnished?: number[];
+	structure?: string[];
+	minPrice?: number;
+	maxPrice?: number;
+	minSize?: number;
+	maxSize?: number;
+	searchSource?: string;
 }
 
-export interface MapSearchItem {
+export interface SearchItem {
 	mapLat: number;
 	mapLng: number;
 	propId: string;
@@ -16,7 +20,7 @@ export interface MapSearchItem {
 	rentOrSale: string;
 }
 
-export interface MapSearchItemDetails {
+export interface SearchItemDetails {
 	propId: number;
 	isLux: boolean;
 	hideProperty: boolean;
@@ -26,7 +30,7 @@ export interface MapSearchItemDetails {
 	caseId: number;
 	cityId: number;
 	underConstruction: boolean;
-	rentOrSale: 'r' | 's';
+	rentOrSale: string;
 	price: number;
 	firstPublished: string;
 	mapLat: number;
@@ -40,10 +44,11 @@ export interface MapSearchItemDetails {
 	neighbourhoods: string[];
 	selectedNeighbourhoods: string[];
 	onsite: {
+		basInfFurnished: number;
 		coverImage: string;
 		imgFiles: string[];
 		imageFiles: string[];
 	};
 }
 
-export type MapSearchResult = MapSearchItem[];
+export type SearchResult = SearchItem[];
