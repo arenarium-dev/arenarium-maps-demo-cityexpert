@@ -267,14 +267,14 @@
 	}
 </script>
 
-<div class="fixed top-0 left-0 flex h-full w-full bg-gray-100">
-	<div class="flex grow flex-col sm:gap-8 sm:p-8">
+<div class="fixed top-0 left-0 grid h-full w-full grid-cols-[1fr_auto] bg-gray-100">
+	<div class="flex h-full grow flex-col sm:gap-8 sm:p-8">
 		<header
 			class="z-1 flex h-15 w-full items-center gap-4 overflow-auto bg-white px-4 shadow-sm sm:rounded-xl"
 		>
 			<a
 				href="https://cityexpert.rs"
-				class="flex h-8 items-center justify-center rounded-lg bg-white sm:bg-transparent"
+				class="flex h-8 shrink-0 items-center justify-center rounded-lg bg-white sm:bg-transparent"
 			>
 				{#if compact}
 					<img src="/favicon.ico" alt="logo" class="m-2" />
