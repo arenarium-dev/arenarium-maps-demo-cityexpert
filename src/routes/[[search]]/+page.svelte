@@ -14,8 +14,9 @@
 	import Details from '$lib/components/Details.svelte';
 	import Search from '$lib/components/Search.svelte';
 
-	import { Button } from '$lib/components/ui/button/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 
 	import SvgLogo from '$lib/assets/logo.svg';
 
@@ -37,6 +38,13 @@
 	import type { SearchItem, SearchItemDetails, SearchRequest, SearchResult } from '$lib/types';
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
+
+	const PIN_RADIUS = 12;
+	const PIN_STROKE = 2;
+
+	const TOOLTIP_WIDTH = 104;
+	const TOOLTIP_HEIGHT = 54;
+	const TOOLTIP_RADIUS = 8;
 
 	const POPUP_WIDTH = 288;
 	const POPUP_HEIGHT = 258;
@@ -63,6 +71,9 @@
 	let listElement = $state<HTMLElement>();
 	let listElements = $state<HTMLElement[]>([]);
 	let listObserver: IntersectionObserver | undefined;
+
+	let dialogOpen = $state(false);
+	let dialogId = $state<string>('');
 
 	onMount(async () => {
 		// Create a maplibre provider instance
@@ -235,26 +246,38 @@
 				pin: {
 					initialize: onInitializePin,
 					element: document.createElement('div'),
-					dimensions: { radius: 12 * spacing, stroke: 2 },
+					dimensions: { radius: PIN_RADIUS * spacing, stroke: PIN_STROKE * spacing },
 					style: { stroke: '#ffffff', background: '#df2d43aa' }
 				},
 				tooltip: {
 					initialize: onInitializeTooltip,
 					element: document.createElement('div'),
-					dimensions: { width: 104 * spacing, height: 54 * spacing, padding: 8 * spacing },
+					dimensions: {
+						width: TOOLTIP_WIDTH * spacing,
+						height: TOOLTIP_HEIGHT * spacing,
+						padding: TOOLTIP_RADIUS * spacing
+					},
 					style: {
 						background: '#f8f8f8',
 						radius: 12 * spacing
 						// filter: 'opacity(0.9) drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.5))'
 					}
-				},
-				popup: {
+				}
+			};
+
+			if (compact === false) {
+				marker.popup = {
 					initialize: onInitializePopup,
 					element: document.createElement('div'),
 					dimensions: { width: POPUP_WIDTH, height: POPUP_HEIGHT, padding: 8 * spacing },
 					style: { background: '#ffffff', radius: POPUP_RADIUS }
-				}
-			};
+				};
+			} else {
+				marker.tooltip.element.addEventListener('click', () => {
+					dialogId = marker.id;
+					dialogOpen = true;
+				});
+			}
 
 			searchItems.set(item.propId.toString(), item);
 			searchMarkers.set(item.propId.toString(), marker);
@@ -397,6 +420,14 @@
 			{/each}
 		</div>
 	</div>
+
+	<Dialog.Root bind:open={dialogOpen}>
+		<Dialog.Content class="flex flex-col p-2 sm:max-w-100">
+			<div style:height={`${listElementHeight}px`}>
+				<Details id={dialogId} data={searchItemDetails} />
+			</div>
+		</Dialog.Content>
+	</Dialog.Root>
 </div>
 
 <style>
