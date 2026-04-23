@@ -31,7 +31,7 @@
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
 	import '@arenarium/maps/style.css';
 
-	import maplibregl from 'maplibre-gl';
+	import * as maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 
 	import type { SearchItem, SearchItemDetails, SearchRequest, SearchResult } from '$lib/types';
@@ -43,7 +43,7 @@
 	const POPUP_RADIUS = 16;
 
 	let width = $derived(outerWidth.current ?? 0);
-	let compact = $derived(width <= 640);
+	let compact = $derived(width && width <= 640);
 	let spacing = $derived(compact ? 0.8 : 1);
 
 	let mapLibre: maplibregl.Map | undefined;
@@ -102,8 +102,8 @@
 				}
 
 				// Compare the current search dialog with the default search and update the URL if they differ
-				const oldSearch = btoa(JSON.stringify(searchPage));
-				const newSearch = btoa(JSON.stringify(searchDialog));
+				const oldSearch = getPathFromSearch(searchPage);
+				const newSearch = getPathFromSearch(searchDialog);
 				// Navigate to the new search URL
 				if (oldSearch !== newSearch) goto(`/${newSearch}`);
 			});
@@ -128,7 +128,11 @@
 	});
 
 	function getSearchFromPath(path: string | undefined): SearchRequest {
-		return path ? JSON.parse(atob(path)) : getDefaultSearch();
+		return path ? JSON.parse(decodeURIComponent(atob(path))) : getDefaultSearch();
+	}
+
+	function getPathFromSearch(search: SearchRequest): string {
+		return btoa(encodeURIComponent(JSON.stringify(search)));
 	}
 
 	function onZoomIn() {
@@ -238,7 +242,11 @@
 					initialize: onInitializeTooltip,
 					element: document.createElement('div'),
 					dimensions: { width: 104 * spacing, height: 54 * spacing, padding: 8 * spacing },
-					style: { background: '#ffffff', radius: 12 * spacing }
+					style: {
+						background: '#f8f8f8',
+						radius: 12 * spacing
+						// filter: 'opacity(0.9) drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.5))'
+					}
 				},
 				popup: {
 					initialize: onInitializePopup,
