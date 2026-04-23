@@ -3,8 +3,9 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import { outerWidth } from 'svelte/reactivity/window';
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 
-	import { getDefaultSearch } from '$lib/search';
+	import { getDefaultSearch, getSearchLocation } from '$lib/search';
 
 	import Pin from '$lib/marker/Pin.svelte';
 	import Tooltip from '$lib/marker/Tooltip.svelte';
@@ -36,7 +37,6 @@
 	import type { SearchItem, SearchItemDetails, SearchRequest, SearchResult } from '$lib/types';
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
-	import { goto } from '$app/navigation';
 
 	const POPUP_WIDTH = 288;
 	const POPUP_HEIGHT = 258;
@@ -65,11 +65,17 @@
 	let listObserver: IntersectionObserver | undefined;
 
 	onMount(async () => {
+		// Parse the search parameter from the URL if present
+		const searchParam = page.params.search;
+		const search = searchParam ? JSON.parse(atob(searchParam)) : getDefaultSearch();
+		searchPage = search;
+		searchDialog = search;
+
 		// Create a maplibre provider instance
 		mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
 			container: 'map',
 			zoom: 13,
-			center: [20.450989, 44.811222],
+			center: getSearchLocation(search.cityId),
 			style: '/style.json'
 			// Other maplibre options...
 		});
@@ -85,12 +91,6 @@
 		});
 		// Access the maplibre instance for direct map interactions
 		mapLibre = mapProvider.getMap();
-
-		// Parse the search parameter from the URL if present
-		const searchParam = page.params.search;
-		const search = searchParam ? JSON.parse(atob(searchParam)) : getDefaultSearch();
-		searchPage = search;
-		searchDialog = search;
 
 		// Update the search items based on the parsed or default search request
 		await updateSearchItems(search);
@@ -115,8 +115,17 @@
 		// Compare the current search dialog with the default search and update the URL if they differ
 		const oldSearch = btoa(JSON.stringify(searchPage));
 		const newSearch = btoa(JSON.stringify(searchDialog));
+
 		if (oldSearch !== newSearch) {
+			// Update the map center if the cityId has changed
+			if (searchPage.cityId !== searchDialog.cityId) {
+				mapLibre?.jumpTo({ center: getSearchLocation(searchDialog.cityId) });
+			}
+
+			// Update the search page to the dialog state
 			searchPage = searchDialog;
+
+			// Navigate to the new search URL
 			goto(`/${newSearch}`);
 		}
 	});
@@ -260,7 +269,9 @@
 
 			// Observe list elements for intersection changes
 			for (const element of listElements) {
-				listObserver.observe(element);
+				if (element instanceof HTMLElement) {
+					listObserver.observe(element);
+				}
 			}
 		}
 	}

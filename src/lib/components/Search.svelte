@@ -147,7 +147,6 @@
 				minSize: areaFrom ?? undefined,
 				maxSize: areaTo ?? undefined
 			};
-			console.log(search);
 		}
 
 		label = getLabel();
