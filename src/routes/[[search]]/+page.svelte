@@ -290,7 +290,7 @@
 			const response = await fetch(url);
 			if (!response.ok) return;
 
-			const details = await response.json();
+			const details: SearchItemDetails = await response.json();
 			searchItemDetails.set(id, details);
 		} finally {
 			searchItemDetailsLoading.set(id, false);
@@ -298,7 +298,7 @@
 	}
 </script>
 
-<div class="fixed top-0 left-0 grid h-full w-full grid-cols-[1fr_auto] bg-gray-100">
+<div class="fixed top-0 left-0 grid h-full w-full grid-cols-[1fr_auto] bg-gray-200">
 	<div class="flex h-full grow flex-col sm:gap-8 sm:p-8">
 		<header
 			class="z-1 flex h-15 w-full items-center gap-4 overflow-auto bg-white px-4 shadow-sm sm:rounded-xl"
@@ -372,7 +372,7 @@
 	<div
 		bind:this={listElement}
 		class={{
-			'scroll absolute top-15 right-0 bottom-15 left-0 overflow-y-scroll bg-gray-100 sm:relative sm:top-0 sm:bottom-0 sm:z-0 sm:w-160': true,
+			'scroll absolute top-15 right-0 bottom-15 left-0 overflow-y-scroll bg-gray-200 sm:relative sm:top-0 sm:bottom-0 sm:z-0 sm:w-160': true,
 			hidden: compact && !list
 		}}
 	>
