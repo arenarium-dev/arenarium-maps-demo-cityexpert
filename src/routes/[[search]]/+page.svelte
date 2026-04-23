@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, mount, onDestroy, tick } from 'svelte';
+	import { onMount, mount, onDestroy, tick, untrack } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { outerWidth } from 'svelte/reactivity/window';
 	import { page } from '$app/state';
@@ -48,10 +48,10 @@
 
 	let mapLibre: maplibregl.Map | undefined;
 	let mapProvider: MaplibreProvider | undefined;
-	let mapManager: MapManager | undefined;
+	let mapManager = $state<MapManager>();
 
-	let searchPage = $state<SearchRequest>();
-	let searchDialog = $state<SearchRequest>();
+	let searchPage = $derived<SearchRequest>(getSearchFromPath(page.params.search));
+	let searchDialog = $state<SearchRequest>(getSearchFromPath(page.params.search));
 	let searchMarkers: Map<string, MapMarkerProperties> = new Map();
 	let searchItems: SvelteMap<string, SearchItem> = new SvelteMap();
 	let searchItemDetails: SvelteMap<string, SearchItemDetails> = new SvelteMap();
@@ -65,20 +65,16 @@
 	let listObserver: IntersectionObserver | undefined;
 
 	onMount(async () => {
-		// Parse the search parameter from the URL if present
-		const searchParam = page.params.search;
-		const search = searchParam ? JSON.parse(atob(searchParam)) : getDefaultSearch();
-		searchPage = search;
-		searchDialog = search;
-
 		// Create a maplibre provider instance
 		mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
 			container: 'map',
 			zoom: 13,
-			center: getSearchLocation(search.cityId),
+			center: getSearchLocation(searchPage.cityId),
 			style: '/style.json'
 			// Other maplibre options...
 		});
+		// Access the maplibre instance for direct map interactions
+		mapLibre = mapProvider.getMap();
 		// Initialize the map manager with the provider
 		mapManager = await MapManager.create(PUBLIC_ARENARIUM_MAPS_TOKEN, mapProvider, {
 			pin: {
@@ -89,11 +85,6 @@
 				depth: 2
 			}
 		});
-		// Access the maplibre instance for direct map interactions
-		mapLibre = mapProvider.getMap();
-
-		// Update the search items based on the parsed or default search request
-		await updateSearchItems(search);
 	});
 
 	onDestroy(() => {
@@ -102,33 +93,43 @@
 	});
 
 	$effect(() => {
-		// Update search items when compact mode changes
-		if (compact || !compact) {
-			if (searchPage) updateSearchItems(searchPage);
+		// Check if the search dialog is changed
+		if (searchDialog) {
+			untrack(() => {
+				// Update the map center if the cityId has changed
+				if (searchPage.cityId !== searchDialog.cityId) {
+					mapLibre?.jumpTo({ center: getSearchLocation(searchDialog.cityId) });
+				}
+
+				// Compare the current search dialog with the default search and update the URL if they differ
+				const oldSearch = btoa(JSON.stringify(searchPage));
+				const newSearch = btoa(JSON.stringify(searchDialog));
+				// Navigate to the new search URL
+				if (oldSearch !== newSearch) goto(`/${newSearch}`);
+			});
 		}
 	});
 
 	$effect(() => {
-		// Check if the search dialog is initialized
-		if (!searchDialog || !searchPage) return;
+		// When the search page changes or compact mode changes
+		if (searchPage && mapManager) {
+			untrack(() => {
+				// Update the map center if the cityId has changed
+				if (searchPage.cityId !== searchDialog.cityId) {
+					mapLibre?.jumpTo({ center: getSearchLocation(searchPage.cityId) });
+				}
 
-		// Compare the current search dialog with the default search and update the URL if they differ
-		const oldSearch = btoa(JSON.stringify(searchPage));
-		const newSearch = btoa(JSON.stringify(searchDialog));
-
-		if (oldSearch !== newSearch) {
-			// Update the map center if the cityId has changed
-			if (searchPage.cityId !== searchDialog.cityId) {
-				mapLibre?.jumpTo({ center: getSearchLocation(searchDialog.cityId) });
-			}
-
-			// Update the search page to the dialog state
-			searchPage = searchDialog;
-
-			// Navigate to the new search URL
-			goto(`/${newSearch}`);
+				// Update the search dialog to match the search page
+				searchDialog = searchPage;
+				// Update the search items
+				updateSearchItems(searchPage);
+			});
 		}
 	});
+
+	function getSearchFromPath(path: string | undefined): SearchRequest {
+		return path ? JSON.parse(atob(path)) : getDefaultSearch();
+	}
 
 	function onZoomIn() {
 		if (!mapLibre) return;
@@ -313,11 +314,9 @@
 					<img src={SvgLogo} alt="logo" class="mx-3 mt-1 w-30" />
 				{/if}
 			</a>
-			{#if searchDialog}
-				<div class="flex grow items-center justify-center">
-					<Search bind:search={searchDialog} />
-				</div>
-			{/if}
+			<div class="flex grow items-center justify-center">
+				<Search {searchPage} bind:searchDialog />
+			</div>
 			<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
 				<IconGlobe />
 			</Button>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
@@ -13,7 +13,13 @@
 	import { getDefaultSearch } from '$lib/search';
 	import type { SearchRequest } from '$lib/types';
 
-	let { search = $bindable() }: { search: SearchRequest } = $props();
+	let {
+		searchPage,
+		searchDialog = $bindable()
+	}: {
+		searchPage: SearchRequest;
+		searchDialog: SearchRequest;
+	} = $props();
 
 	// Categories
 	const categories = [
@@ -57,7 +63,8 @@
 		// Fetch locations based on the selected city
 		fetch(`/api/locations/${city}`)
 			.then((res) => res.json())
-			.then((data: { id: string; name: string }[]) => {
+			.then((json) => {
+				const data = json as { id: string; name: string }[];
 				locations = data.toSorted((a, b) => a.name.localeCompare(b.name));
 			});
 	});
@@ -102,10 +109,20 @@
 	let areaTo = $state<number | null>(null);
 
 	// State
-	let label = $state<string>(getLabel());
+	let label = $state<string>();
 
-	onMount(() => {
-		// Initialize state from search request
+	$effect(() => {
+		if (searchPage) {
+			untrack(() => {
+				// Initialize state from search request
+				setValues(searchPage);
+				// Set new label
+				setLabel();
+			});
+		}
+	});
+
+	function setValues(search: SearchRequest) {
 		category = search.rentOrSale;
 		city = search.cityId.toString();
 		sort = search.sort;
@@ -116,26 +133,27 @@
 		priceTo = search.maxPrice ?? null;
 		areaFrom = search.minSize ?? null;
 		areaTo = search.maxSize ?? null;
+	}
+
+	function setLabel() {
+		// Build label line from search criteria
+		let line = `${categoryLabel}, ${cityLabel}, ${sortLabel}`;
+		if (locationLabel.length) line += `, ${locationLabel}`;
+		if (typeLabel.length) line += `, ${typeLabel}`;
+		if (roomLabel.length) line += `, ${roomLabel}`;
+		if (priceFrom !== null) line += `, od ${priceFrom} €`;
+		if (priceTo !== null) line += `, do ${priceTo} €`;
+		if (areaFrom !== null) line += `, ${areaFrom} m²`;
+		if (areaTo !== null) line += `, do ${areaTo} m²`;
 
 		// Set new label
-		label = getLabel();
-	});
-
-	function getLabel() {
-		let label = `${categoryLabel}, ${cityLabel}, ${sortLabel}`;
-		if (locationLabel.length) label += `, ${locationLabel}`;
-		if (typeLabel.length) label += `, ${typeLabel}`;
-		if (roomLabel.length) label += `, ${roomLabel}`;
-		if (priceFrom !== null) label += `, od ${priceFrom} €`;
-		if (priceTo !== null) label += `, do ${priceTo} €`;
-		if (areaFrom !== null) label += `, ${areaFrom} m²`;
-		if (areaTo !== null) label += `, do ${areaTo} m²`;
-		return label;
+		label = line;
 	}
 
 	function onOpenChange(open: boolean) {
+		// If dialog is closed, set search request from state
 		if (open == false) {
-			search = {
+			searchDialog = {
 				cityId: parseInt(city),
 				rentOrSale: category,
 				sort: sort,
@@ -148,13 +166,11 @@
 				maxSize: areaTo ?? undefined
 			};
 		}
-
-		label = getLabel();
 	}
 
 	function onReset() {
-		search = getDefaultSearch();
-		label = getLabel();
+		// Set values from default search
+		setValues(getDefaultSearch());
 	}
 </script>
 
