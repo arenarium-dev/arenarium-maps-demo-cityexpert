@@ -90,7 +90,7 @@
 		mapManager = await MapManager.create(PUBLIC_ARENARIUM_MAPS_TOKEN, mapProvider, {
 			pin: {
 				fadeout: {
-					scale: 0.2,
+					scale: 0.25,
 					color: 0
 				},
 				depth: 2
@@ -247,7 +247,7 @@
 					initialize: onInitializePin,
 					element: document.createElement('div'),
 					dimensions: { radius: PIN_RADIUS * spacing, stroke: PIN_STROKE * spacing },
-					style: { stroke: '#ffffff', background: '#df2d43aa' }
+					style: { stroke: '#ffffff', background: '#df2d4344' }
 				},
 				tooltip: {
 					initialize: onInitializeTooltip,
@@ -260,7 +260,6 @@
 					style: {
 						background: '#f8f8f8',
 						radius: 12 * spacing
-						// filter: 'opacity(0.9) drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.5))'
 					}
 				}
 			};
@@ -402,11 +401,13 @@
 	<div
 		bind:this={listElement}
 		class={{
-			'scroll absolute top-15 right-0 bottom-15 left-0 overflow-y-scroll bg-gray-200 sm:relative sm:top-0 sm:bottom-0 sm:z-0 sm:w-160': true,
+			'scroll overflow-y-scroll bg-gray-200': true,
+			'relative w-160 justify-self-start': !compact,
+			'absolute top-15 right-0 bottom-15 left-0': compact,
 			hidden: compact && !list
 		}}
 	>
-		<div class="flex h-full w-full flex-wrap gap-4 p-4 sm:gap-8 sm:px-0 sm:py-8">
+		<div class="grid w-full grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-8 sm:px-0 sm:py-8 sm:pr-6">
 			{#each searchItems.values() as details, i}
 				<div
 					bind:this={listElements[i]}
@@ -422,8 +423,8 @@
 	</div>
 
 	<Dialog.Root bind:open={dialogOpen}>
-		<Dialog.Content class="flex flex-col p-2 sm:max-w-100">
-			<div style:height={`${listElementHeight}px`}>
+		<Dialog.Content class="flex flex-col p-2 sm:max-w-100" autofocus={false} trapFocus={false}>
+			<div class="" style:height={`${listElementHeight}px`}>
 				<Details id={dialogId} data={searchItemDetails} />
 			</div>
 		</Dialog.Content>

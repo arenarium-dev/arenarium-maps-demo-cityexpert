@@ -66,6 +66,7 @@
 			.then((json) => {
 				const data = json as { id: string; name: string }[];
 				locations = data.toSorted((a, b) => a.name.localeCompare(b.name));
+				locationValues = [];
 			});
 	});
 
