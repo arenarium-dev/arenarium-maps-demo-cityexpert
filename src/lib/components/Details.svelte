@@ -186,12 +186,12 @@
 				/>
 			</div>
 
-			<div class="font-primary shrink-0 truncate px-1 pt-1 pb-2 text-sm leading-5.25 text-gray-600">
+			<div class="shrink-0 truncate px-1 pt-1 pb-2 text-sm leading-5.25 text-gray-500">
 				<span>{details.street}, {details.municipality}</span>
 			</div>
 
 			<div
-				class="font-primary grid shrink-0 grid-cols-[1fr_1fr_2fr] gap-1.5 text-center text-[calc(3*var(--spacing))] leading-6 font-semibold text-gray-600"
+				class="font-primary grid shrink-0 grid-cols-[1fr_1fr_2fr] gap-1.5 text-center text-xs leading-6 font-semibold text-gray-600"
 			>
 				<div class="rounded-full bg-gray-100 px-2 whitespace-nowrap">
 					<span>{details.size} m²</span>

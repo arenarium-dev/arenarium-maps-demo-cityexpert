@@ -375,8 +375,8 @@
 			</Button>
 		</header>
 
-		<div class="relative grow">
-			<div id="map" class="absolute h-full w-full sm:rounded-xl sm:border sm:shadow-sm"></div>
+		<div class="relative grow bg-white p-2 sm:rounded-xl sm:border sm:shadow-sm">
+			<div id="map" class="absolute h-full w-full sm:rounded-lg"></div>
 			<div class="absolute top-4 right-4">
 				<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
 					<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
