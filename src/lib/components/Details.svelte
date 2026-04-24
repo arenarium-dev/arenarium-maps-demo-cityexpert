@@ -102,7 +102,6 @@
 				entries.forEach((entry) => {
 					if (entry.isIntersecting) {
 						shown = true;
-						console.log('shown', shown);
 					}
 				});
 			});
@@ -132,7 +131,7 @@
 </script>
 
 <div bind:this={element} class="relative h-full w-full">
-	{#if details && shown}
+	{#if details !== undefined && shown}
 		<a
 			href={url}
 			target="_blank"
@@ -142,42 +141,42 @@
 			<div
 				class="group relative mb-2 w-full grow cursor-pointer overflow-hidden rounded-lg bg-gray-100 *:transition-all *:duration-125"
 			>
-				<Carousel.Root setApi={(api) => (imageApi = api)}>
-					<Carousel.Content>
+				<Carousel.Root setApi={(api) => (imageApi = api)} class="absolute h-full w-full">
+					<Carousel.Content class="absolute ms-0 h-full w-full">
 						{#each images as image}
-							<Carousel.Item>
-								<div>
-									<img src={image} alt={image} class="aspect-square h-full w-full object-cover" />
+							<Carousel.Item class="h-full w-full ps-0">
+								<div class="h-full w-full">
+									<img src={image} alt={image} class="h-full w-full object-cover" />
 								</div>
 							</Carousel.Item>
 						{/each}
 					</Carousel.Content>
-					<button
-						class="absolute top-6 bottom-6 left-1 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
-						onclick={onImagePrev}
-						ondblclick={onImagePrev}
-					>
-						<IconChevronLeft size={30} class="my-px mr-0.5 justify-self-start " />
-					</button>
-					<button
-						class="absolute top-6 right-1 bottom-6 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
-						onclick={onImageNext}
-						ondblclick={onImageNext}
-					>
-						<IconChevronRight size={30} class="my-px ml-0.5 justify-self-end " />
-					</button>
 				</Carousel.Root>
 				<div
 					class="pointer-events-none absolute top-2 left-2 text-xs font-semibold text-white select-none"
 				>
 					ID {details.propId}
 				</div>
+				<button
+					class="absolute top-6 bottom-6 left-1 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
+					onclick={onImagePrev}
+					ondblclick={onImagePrev}
+				>
+					<IconChevronLeft size={30} class="my-px mr-0.5 justify-self-start " />
+				</button>
+				<button
+					class="absolute top-6 right-1 bottom-6 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
+					onclick={onImageNext}
+					ondblclick={onImageNext}
+				>
+					<IconChevronRight size={30} class="my-px ml-0.5 justify-self-end " />
+				</button>
 			</div>
 
-			<div class="font-primary flex items-center px-1 text-[#252525]">
-				<span class="grow font-[Montserrat] text-[calc(4*var(--spacing))] leading-6 font-bold"
-					>{details.price.toLocaleString().replace(',', '.')} €</span
-				>
+			<div class="font-primary flex shrink-0 items-center px-1 text-[#252525]">
+				<span class="grow font-[Montserrat] text-lg leading-6 font-bold">
+					{details.price.toLocaleString().replace(',', '.')} €
+				</span>
 				<img
 					class="size-6 overflow-hidden rounded-full object-cover object-[50%_1px]"
 					loading="lazy"
@@ -187,14 +186,12 @@
 				/>
 			</div>
 
-			<div
-				class="font-primary truncate px-1 pb-2 text-[calc(3*var(--spacing))] leading-5.25 text-gray-600"
-			>
+			<div class="font-primary shrink-0 truncate px-1 pt-1 pb-2 text-sm leading-5.25 text-gray-600">
 				<span>{details.street}, {details.municipality}</span>
 			</div>
 
 			<div
-				class="font-primary grid grid-cols-[1fr_1fr_2fr] gap-1.5 text-center text-[calc(3*var(--spacing))] leading-6 font-semibold text-gray-600"
+				class="font-primary grid shrink-0 grid-cols-[1fr_1fr_2fr] gap-1.5 text-center text-[calc(3*var(--spacing))] leading-6 font-semibold text-gray-600"
 			>
 				<div class="rounded-full bg-gray-100 px-2 whitespace-nowrap">
 					<span>{details.size} m²</span>

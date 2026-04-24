@@ -47,7 +47,7 @@
 	const TOOLTIP_RADIUS = 8;
 
 	const POPUP_WIDTH = 288;
-	const POPUP_HEIGHT = 378;
+	const POPUP_HEIGHT = (POPUP_WIDTH * 3) / 3;
 	const POPUP_RADIUS = 16;
 
 	let width = $derived(outerWidth.current ?? 0);
@@ -66,8 +66,8 @@
 	let searchItemDetailsLoading: Map<string, boolean> = new Map();
 
 	let list = $state(false);
-	let listElementWidth = $derived(compact && width ? width - 32 : POPUP_WIDTH);
-	let listElementHeight = $derived(POPUP_HEIGHT);
+	let listPopupWidth = $derived(compact && width ? width - 32 : POPUP_WIDTH);
+	let listPopupHeight = $derived((listPopupWidth * 3) / 3);
 	let listElement = $state<HTMLElement>();
 	let listElements = $state<HTMLElement[]>([]);
 	let listObserver: IntersectionObserver | undefined;
@@ -429,8 +429,8 @@
 				<div
 					bind:this={listElements[i]}
 					data-id={item.propId.toString()}
-					style:height={`${listElementHeight}px`}
-					style:width={`${listElementWidth}px`}
+					style:height={`${listPopupHeight}px`}
+					style:width={`${listPopupWidth}px`}
 					class="rounded-xl bg-white p-2 shadow-sm transition-all duration-150 hover:shadow-md"
 				>
 					<Details id={item.propId.toString()} data={searchItemDetails} />
@@ -441,7 +441,7 @@
 
 	<Dialog.Root bind:open={dialogOpen}>
 		<Dialog.Content class="flex flex-col p-2 sm:max-w-100" autofocus={false} trapFocus={false}>
-			<div class="" style:height={`${listElementHeight}px`}>
+			<div class="" style:height={`${listPopupHeight}px`}>
 				<Details id={dialogId} data={searchItemDetails} />
 			</div>
 		</Dialog.Content>
