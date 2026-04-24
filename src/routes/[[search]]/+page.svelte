@@ -47,7 +47,7 @@
 	const TOOLTIP_RADIUS = 8;
 
 	const POPUP_WIDTH = 288;
-	const POPUP_HEIGHT = 258;
+	const POPUP_HEIGHT = 378;
 	const POPUP_RADIUS = 16;
 
 	let width = $derived(outerWidth.current ?? 0);
@@ -202,10 +202,27 @@
 	}
 
 	function onListObserve(entries: IntersectionObserverEntry[]) {
+		if (!listElement) return;
+
 		for (const entry of entries) {
 			if (entry.isIntersecting) {
 				const id = entry.target.getAttribute('data-id');
-				if (id) updateSearchDetails(id);
+				if (!id) continue;
+
+				// Get the scroll position before checking if entries are intersecting
+				let scroll = listElement.scrollTop;
+				let scrollDelay = 100;
+
+				const processObservation = async () => {
+					let scrolling = listElement?.scrollTop != scroll;
+					if (scrolling == false) {
+						await updateSearchDetails(id);
+					} else {
+						scroll = listElement?.scrollTop ?? scroll;
+						setTimeout(processObservation, scrollDelay);
+					}
+				};
+				setTimeout(processObservation, scrollDelay);
 			}
 		}
 	}
@@ -408,15 +425,15 @@
 		}}
 	>
 		<div class="grid w-full grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-8 sm:px-0 sm:py-8 sm:pr-6">
-			{#each searchItems.values() as details, i}
+			{#each searchItems.values() as item, i (item.propId)}
 				<div
 					bind:this={listElements[i]}
-					data-id={details.propId.toString()}
+					data-id={item.propId.toString()}
 					style:height={`${listElementHeight}px`}
 					style:width={`${listElementWidth}px`}
 					class="rounded-xl bg-white p-2 shadow-sm transition-all duration-150 hover:shadow-md"
 				>
-					<Details id={details.propId.toString()} data={searchItemDetails} />
+					<Details id={item.propId.toString()} data={searchItemDetails} />
 				</div>
 			{/each}
 		</div>

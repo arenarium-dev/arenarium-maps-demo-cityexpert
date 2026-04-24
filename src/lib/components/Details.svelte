@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { onDestroy, onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import type { SvelteMap } from 'svelte/reactivity';
 
-	import { Spinner } from '$lib/components/ui/spinner/index.js';
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
+	import type { CarouselAPI } from '$lib/components/ui/carousel/context.js';
 
 	import IconChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import IconChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -62,9 +64,6 @@
 		`https://cityexpert.rs/${contract}-nekretnina/${city}/${id}/${type}-${street}-${municipality}`
 	);
 
-	let imageIndex = $state(0);
-	let imageLoading = $state(false);
-	let imageLoaded = $state(false);
 	let images = $derived.by<string[]>(() => {
 		const array: string[] = [];
 
@@ -91,17 +90,36 @@
 
 		return array;
 	});
-	let image = $derived(images[imageIndex]);
+	let imageApi = $state<CarouselAPI>();
+
+	let observer: IntersectionObserver | undefined;
+	let element = $state<HTMLElement>();
+	let shown = $state(false);
+
+	onMount(() => {
+		if (element) {
+			const observer = new IntersectionObserver((entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						shown = true;
+						console.log('shown', shown);
+					}
+				});
+			});
+			observer.observe(element);
+		}
+	});
+
+	onDestroy(() => {
+		observer?.disconnect();
+	});
 
 	function onImageNext(e: Event) {
 		e.preventDefault();
 		e.stopPropagation();
 		e.stopImmediatePropagation();
 
-		if (images.length === 0) return;
-		imageLoaded = false;
-		imageIndex = (imageIndex + 1) % images.length;
-		setTimeout(() => (imageLoading = true), 100);
+		imageApi?.scrollNext();
 	}
 
 	function onImagePrev(e: Event) {
@@ -109,20 +127,12 @@
 		e.stopPropagation();
 		e.stopImmediatePropagation();
 
-		if (images.length === 0) return;
-		imageLoaded = false;
-		imageIndex = (imageIndex - 1 + images.length) % images.length;
-		setTimeout(() => (imageLoading = true), 100);
-	}
-
-	function onImageLoad() {
-		imageLoaded = true;
-		imageLoading = false;
+		imageApi?.scrollPrev();
 	}
 </script>
 
-<div class="relative h-full w-full">
-	{#if details}
+<div bind:this={element} class="relative h-full w-full">
+	{#if details && shown}
 		<a
 			href={url}
 			target="_blank"
@@ -130,26 +140,18 @@
 			transition:fade={{ duration: 250 }}
 		>
 			<div
-				class="group relative mb-2 aspect-video w-full grow cursor-pointer overflow-hidden rounded-lg bg-gray-100 *:transition-all *:duration-125"
+				class="group relative mb-2 w-full grow cursor-pointer overflow-hidden rounded-lg bg-gray-100 *:transition-all *:duration-125"
 			>
-				{#if images.length > 0}
-					{#if image}
-						<img
-							src={image}
-							alt={image}
-							onload={onImageLoad}
-							onerror={onImageLoad}
-							class="h-full w-full object-cover"
-						/>
-					{/if}
-					{#if imageLoading && !imageLoaded}
-						<div
-							class="absolute top-0 left-0 flex h-full w-full items-center justify-center rounded-lg bg-white/25 backdrop-blur-xs"
-							transition:fade={{ duration: 100 }}
-						>
-							<Spinner class="size-6" />
-						</div>
-					{/if}
+				<Carousel.Root setApi={(api) => (imageApi = api)}>
+					<Carousel.Content>
+						{#each images as image}
+							<Carousel.Item>
+								<div>
+									<img src={image} alt={image} class="aspect-square h-full w-full object-cover" />
+								</div>
+							</Carousel.Item>
+						{/each}
+					</Carousel.Content>
 					<button
 						class="absolute top-6 bottom-6 left-1 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
 						onclick={onImagePrev}
@@ -164,16 +166,9 @@
 					>
 						<IconChevronRight size={30} class="my-px ml-0.5 justify-self-end " />
 					</button>
-					<div class="absolute right-7 bottom-1 left-7 flex items-center justify-center">
-						<div
-							class="flex h-6 items-center justify-center rounded-full px-3 font-semibold text-transparent group-hover:bg-white/25 group-hover:text-black"
-						>
-							<span class="text-xs">{imageIndex + 1} od {images.length}</span>
-						</div>
-					</div>
-				{/if}
+				</Carousel.Root>
 				<div
-					class="pointer-events-none absolute top-3 left-3 text-xs font-semibold text-white select-none"
+					class="pointer-events-none absolute top-2 left-2 text-xs font-semibold text-white select-none"
 				>
 					ID {details.propId}
 				</div>
@@ -186,6 +181,7 @@
 				<img
 					class="size-6 overflow-hidden rounded-full object-cover object-[50%_1px]"
 					loading="lazy"
+					decoding="async"
 					src={`https://cityexpert.rs/icons/map/pin_${details.ptId}.png`}
 					alt={details.ptId.toString()}
 				/>
