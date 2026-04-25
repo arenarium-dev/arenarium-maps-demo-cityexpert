@@ -139,7 +139,7 @@
 			transition:fade={{ duration: 250 }}
 		>
 			<div
-				class="group relative mb-2 w-full grow cursor-pointer overflow-hidden rounded-lg bg-gray-100 *:transition-all *:duration-125"
+				class="group relative mb-2 w-full grow cursor-pointer overflow-hidden rounded-md bg-gray-100 *:transition-all *:duration-125"
 			>
 				<Carousel.Root setApi={(api) => (imageApi = api)} class="absolute h-full w-full">
 					<Carousel.Content class="absolute ms-0 h-full w-full">
@@ -152,6 +152,9 @@
 						{/each}
 					</Carousel.Content>
 				</Carousel.Root>
+				<div
+					class="pointer-events-none absolute top-0 right-0 bottom-0 left-0 rounded-md inset-shadow-sm"
+				></div>
 				<div
 					class="pointer-events-none absolute top-2 left-2 text-xs font-semibold text-white select-none"
 				>

@@ -178,8 +178,11 @@
 <Dialog.Root {onOpenChange}>
 	<Dialog.Trigger
 		type="button"
-		class="grid h-9 w-full cursor-pointer grid-cols-[1fr_auto] items-center justify-start gap-3 rounded-lg border border-gray-100 bg-gray-50! px-4 text-sm font-medium text-muted-foreground hover:text-foreground"
+		class="relative grid h-9 w-full max-w-200 cursor-pointer grid-cols-[1fr_auto] items-center justify-start gap-3 rounded-lg bg-stone-50! px-4 text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground"
 	>
+		<div
+			class="pointer-events-none absolute top-0 right-0 bottom-0 left-0 rounded-lg inset-shadow-sm"
+		></div>
 		<span class="truncate text-start">{label}</span>
 		<IconSliders class="w-4" />
 	</Dialog.Trigger>

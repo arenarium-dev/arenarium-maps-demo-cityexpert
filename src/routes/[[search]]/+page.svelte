@@ -17,6 +17,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
 	import SvgLogo from '$lib/assets/logo.svg';
 
@@ -48,10 +49,10 @@
 
 	const POPUP_WIDTH = 288;
 	const POPUP_HEIGHT = (POPUP_WIDTH * 3) / 3;
-	const POPUP_RADIUS = 16;
+	const POPUP_RADIUS = 12;
 
 	let width = $derived(outerWidth.current ?? 0);
-	let compact = $derived(width && width <= 640);
+	let compact = $derived(width && width <= 470 + 32);
 	let spacing = $derived(compact ? 0.8 : 1);
 
 	let mapLibre: maplibregl.Map | undefined;
@@ -275,8 +276,9 @@
 						padding: TOOLTIP_RADIUS * spacing
 					},
 					style: {
-						background: '#f8f8f8',
-						radius: 12 * spacing
+						background: '#ffffff',
+						radius: 12 * spacing,
+						filter: 'drop-shadow(rgba(0, 0, 0, 0.25) 0px 2px 2px)'
 					}
 				}
 			};
@@ -346,14 +348,23 @@
 	}
 </script>
 
-<div class="fixed top-0 left-0 grid h-full w-full grid-cols-[1fr_auto] bg-gray-200">
-	<div class="flex h-full grow flex-col sm:gap-8 sm:p-8">
+{#if width > 0}
+	<div
+		class={{
+			'fixed top-0 left-0 grid h-full w-full  bg-[#f2f2f2]': true,
+			'grid-rows-[60px_1fr] gap-8 p-8': !compact,
+			'grid-rows-[60px_1fr_60px]': compact
+		}}
+	>
 		<header
-			class="z-1 flex h-15 w-full items-center gap-4 overflow-auto bg-white px-4 shadow-sm sm:rounded-xl"
+			class={{
+				'z-1 flex h-full w-full shrink-0 items-center gap-4 overflow-auto bg-white px-4 shadow-sm': true,
+				'rounded-xl': !compact
+			}}
 		>
 			<a
 				href="https://cityexpert.rs"
-				class="flex h-8 shrink-0 items-center justify-center rounded-lg bg-white sm:bg-transparent"
+				class="flex h-8 shrink-0 items-center justify-center rounded-lg bg-white"
 			>
 				{#if compact}
 					<img src="/favicon.ico" alt="logo" class="m-2" />
@@ -364,93 +375,119 @@
 			<div class="flex grow items-center justify-center">
 				<Search {searchPage} bind:searchDialog />
 			</div>
-			<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
-				<IconGlobe />
-			</Button>
-			<Button variant="ghost" size="icon" class="hidden bg-white! text-muted-foreground sm:flex">
-				<IconProfile />
-			</Button>
+			{#if !compact}
+				<Button variant="ghost" size="icon" class=" bg-white! text-muted-foreground">
+					<IconGlobe />
+				</Button>
+				<Button variant="ghost" size="icon" class=" bg-white! text-muted-foreground">
+					<IconProfile />
+				</Button>
+			{/if}
 			<Button variant="ghost" size="icon" class="bg-white! text-muted-foreground">
 				<IconMenu />
 			</Button>
 		</header>
 
-		<div class="relative grow bg-white p-2 sm:rounded-xl sm:border sm:shadow-sm">
-			<div id="map" class="absolute h-full w-full sm:rounded-lg"></div>
-			<div class="absolute top-4 right-4">
-				<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
-					<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
-						<IconPlus class="w-4" />
-					</Button>
-					<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
-						<IconMinus class="w-4" />
-					</Button>
-				</ButtonGroup.Root>
-			</div>
-		</div>
-
-		<footer class="z-1 h-15 w-full border-t bg-gray-100 p-2 sm:hidden">
-			<div class="flex h-full w-full items-center gap-4">
-				<Button
-					onclick={() => (list = true)}
-					variant="ghost"
-					class={{
-						'grow bg-white transition-all duration-150': true,
-						'bg-[#df2d43] text-white': list
-					}}
-				>
-					<IconList /> Lista
-				</Button>
-				<Button
-					onclick={() => (list = false)}
-					variant="ghost"
-					class={{
-						'grow bg-white transition-all duration-150': true,
-						'bg-[#df2d43] text-white': !list
-					}}
-				>
-					<IconMap /> Mapa
-				</Button>
-			</div>
-		</footer>
-	</div>
-
-	<div
-		bind:this={listElement}
-		class={{
-			'scroll overflow-y-scroll bg-gray-200': true,
-			'relative w-160 justify-self-start': !compact,
-			'absolute top-15 right-0 bottom-15 left-0': compact,
-			hidden: compact && !list
-		}}
-	>
-		<div class="grid w-full grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-8 sm:px-0 sm:py-8 sm:pr-6">
-			{#each searchItems.values() as item, i (item.propId)}
+		<div class="relative flex min-h-0 gap-8">
+			<div
+				class={{
+					'relative grow bg-white ': true,
+					'rounded-xl border p-4 shadow-sm': !compact
+				}}
+			>
+				<div id="map" class={{ 'absolute h-full w-full': true, 'rounded-md': !compact }}></div>
 				<div
-					bind:this={listElements[i]}
-					data-id={item.propId.toString()}
-					style:height={`${listPopupHeight}px`}
-					style:width={`${listPopupWidth}px`}
-					class="rounded-xl bg-white p-2 shadow-sm transition-all duration-150 hover:shadow-md"
+					class={{
+						'pointer-events-none absolute inset-shadow-sm': true,
+						'top-4 right-4 bottom-4 left-4 rounded-md': !compact,
+						'top-0 right-0 bottom-0 left-0': compact
+					}}
+				></div>
+				<div
+					class={{
+						'absolute top-8 right-8': !compact,
+						'absolute top-4 right-4': compact
+					}}
 				>
-					<Details id={item.propId.toString()} data={searchItemDetails} />
+					<ButtonGroup.Root orientation="vertical" class="rounded-md bg-white shadow-md">
+						<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
+							<IconPlus class="w-4" />
+						</Button>
+						<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
+							<IconMinus class="w-4" />
+						</Button>
+					</ButtonGroup.Root>
 				</div>
-			{/each}
-		</div>
-	</div>
-
-	<Dialog.Root bind:open={dialogOpen}>
-		<Dialog.Content class="flex flex-col p-2 sm:max-w-100" autofocus={false} trapFocus={false}>
-			<div class="" style:height={`${listPopupHeight}px`}>
-				<Details id={dialogId} data={searchItemDetails} />
 			</div>
-		</Dialog.Content>
-	</Dialog.Root>
-</div>
+			<div
+				bind:this={listElement}
+				class={{
+					'bg-white': true,
+					'relative w-156 rounded-xl border p-4 pr-0.75 shadow-sm': !compact,
+					'absolute top-0 left-0 h-full w-full': compact,
+					hidden: compact && !list
+				}}
+			>
+				<ScrollArea class="h-full w-full rounded-md">
+					<div
+						class={{
+							'grid gap-4': true,
+							'grid-cols-1 p-4': compact,
+							'grid-cols-2 pr-3.25': !compact
+						}}
+					>
+						{#each searchItems.values() as item, i (item.propId)}
+							<div
+								bind:this={listElements[i]}
+								data-id={item.propId.toString()}
+								style:height={`${listPopupHeight}px`}
+								style:width={`${listPopupWidth}px`}
+							>
+								<Details id={item.propId.toString()} data={searchItemDetails} />
+							</div>
+						{/each}
+					</div>
+				</ScrollArea>
+			</div>
+		</div>
 
-<style>
-	.scroll {
-		scrollbar-color: #aaa transparent;
-		scrollbar-width: thin;
-	}
-</style>
+		{#if compact}
+			<footer class="z-1 h-full w-full shrink-0 border-t bg-white px-4">
+				<div class="flex h-full w-full items-center gap-4">
+					<Button
+						onclick={() => (list = true)}
+						variant="ghost"
+						class={{
+							'grow bg-stone-100 inset-shadow-sm transition-all duration-150': true,
+							'bg-[#df2d43] text-white': list
+						}}
+					>
+						<IconList /> Lista
+					</Button>
+					<Button
+						onclick={() => (list = false)}
+						variant="ghost"
+						class={{
+							'grow bg-stone-100 inset-shadow-sm transition-all duration-150': true,
+							'bg-[#df2d43] text-white': !list
+						}}
+					>
+						<IconMap /> Mapa
+					</Button>
+				</div>
+			</footer>
+		{/if}
+
+		<Dialog.Root bind:open={dialogOpen}>
+			<Dialog.Content
+				class={{ 'flex flex-col p-2': true, 'max-w-100': !compact }}
+				autofocus={false}
+				trapFocus={false}
+			>
+				<div class="" style:height={`${listPopupHeight}px`}>
+					<Details id={dialogId} data={searchItemDetails} />
+				</div>
+			</Dialog.Content>
+		</Dialog.Root>
+	</div>
+{/if}

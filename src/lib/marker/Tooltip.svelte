@@ -39,11 +39,11 @@
 		<div
 			class="font-primary grid grid-cols-[auto_1fr] items-stretch justify-stretch gap-1.5 text-[calc(2.5*var(--spacing))] leading-5 font-semibold text-gray-600"
 		>
-			<div class="rounded-full bg-[#e8e8e8] px-2 text-center whitespace-nowrap">
+			<div class="rounded-full bg-gray-100 px-2 text-center whitespace-nowrap">
 				<span>{details.size} m²</span>
 			</div>
 			<!-- <div class="divider">•</div> -->
-			<div class="rounded-full bg-[#e8e8e8] px-2 text-center whitespace-nowrap">
+			<div class="rounded-full bg-gray-100 px-2 text-center whitespace-nowrap">
 				<span>{details.structure.slice(0, 3)}</span>
 			</div>
 		</div>
