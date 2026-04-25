@@ -47,8 +47,8 @@
 	const TOOLTIP_HEIGHT = 54;
 	const TOOLTIP_RADIUS = 8;
 
-	const POPUP_WIDTH = 288;
-	const POPUP_HEIGHT = (POPUP_WIDTH * 3) / 3;
+	const POPUP_WIDTH = 256 + 64;
+	const POPUP_HEIGHT = POPUP_WIDTH * (3 / 4);
 	const POPUP_RADIUS = 12;
 
 	let width = $derived(outerWidth.current ?? 0);
@@ -67,11 +67,23 @@
 	let searchItemDetailsLoading: Map<string, boolean> = new Map();
 
 	let list = $state(false);
-	let listPopupWidth = $derived(compact && width ? width - 32 : POPUP_WIDTH);
-	let listPopupHeight = $derived((listPopupWidth * 3) / 3);
 	let listElement = $state<HTMLElement>();
 	let listElements = $state<HTMLElement[]>([]);
 	let listObserver: IntersectionObserver | undefined;
+
+	let listItemGapPadding = 16;
+	let listItemRatio = 4 / 3;
+	let listItemHeight = $derived.by(() => {
+		if (compact) return width - 32;
+		if (listElement == undefined) return 0;
+
+		const listHeight = listElement.offsetHeight;
+		const listItemRows = listHeight > 1024 ? 4 : 3;
+		const listItemsHeight =
+			listHeight - 2 * listItemGapPadding - (listItemRows - 1) * listItemGapPadding * 2;
+		return listItemsHeight / listItemRows;
+	});
+	let listItemWidth = $derived(listItemHeight * listItemRatio);
 
 	let dialogOpen = $state(false);
 	let dialogId = $state<string>('');
@@ -423,15 +435,16 @@
 				bind:this={listElement}
 				class={{
 					'bg-white': true,
-					'relative w-156 rounded-xl border p-4 pr-0.75 shadow-sm': !compact,
+					'relative rounded-xl border p-4 pr-0.75 shadow-sm': !compact,
 					'absolute top-0 left-0 h-full w-full': compact,
 					hidden: compact && !list
 				}}
+				style:width={`${listItemWidth * (compact ? 1 : 2) + listItemGapPadding * (compact ? 2 : 3)}px`}
 			>
 				<ScrollArea class="h-full w-full rounded-md">
 					<div
 						class={{
-							'grid gap-4': true,
+							'grid gap-x-4 gap-y-8': true,
 							'grid-cols-1 p-4': compact,
 							'grid-cols-2 pr-3.25': !compact
 						}}
@@ -440,8 +453,8 @@
 							<div
 								bind:this={listElements[i]}
 								data-id={item.propId.toString()}
-								style:height={`${listPopupHeight}px`}
-								style:width={`${listPopupWidth}px`}
+								style:height={`${listItemHeight}px`}
+								style:width={`${listItemWidth}px`}
 							>
 								<Details id={item.propId.toString()} data={searchItemDetails} />
 							</div>
@@ -484,7 +497,7 @@
 				autofocus={false}
 				trapFocus={false}
 			>
-				<div class="" style:height={`${listPopupHeight}px`}>
+				<div class="" style:height={`${listItemHeight}px`}>
 					<Details id={dialogId} data={searchItemDetails} />
 				</div>
 			</Dialog.Content>
