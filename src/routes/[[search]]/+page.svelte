@@ -43,13 +43,13 @@
 	const PIN_RADIUS = 12;
 	const PIN_STROKE = 2;
 
+	const TOOLTIP_RADIUS = 8;
 	const TOOLTIP_WIDTH = 104;
 	const TOOLTIP_HEIGHT = 54;
-	const TOOLTIP_RADIUS = 8;
 
-	const POPUP_WIDTH = 256 + 64;
-	const POPUP_HEIGHT = POPUP_WIDTH;
 	const POPUP_RADIUS = 12;
+	const POPUP_WIDTH = 320;
+	const POPUP_HEIGHT = 320;
 
 	let width = $derived(outerWidth.current ?? 0);
 	let compact = $derived(width && width <= 470 + 32);
@@ -73,47 +73,56 @@
 
 	let listItemGapPadding = 16;
 	let listItemRatio = 3 / 3;
-	let listItemHeight = $derived.by(() => {
-		if (compact) return width - 32;
+	let listItemUnit = 16;
+	let listItemHeightUnits = $derived.by(() => {
 		if (listElement == undefined) return 0;
+		if (compact) return width / listItemUnit - 2;
 
 		const listHeight = listElement.clientHeight;
 		const listItemRows = Math.round(listHeight / POPUP_WIDTH) > 3 ? 3 : 2;
-		const listItemsHeight =
-			listHeight - 2 * listItemGapPadding - (listItemRows - 1) * listItemGapPadding * 2;
-		return listItemsHeight / listItemRows;
+		const listItemsHeight = listHeight - listItemGapPadding * (2 + (listItemRows - 1) * 2);
+		const listItemHeight = listItemsHeight / listItemRows;
+		return listItemHeight / listItemUnit;
 	});
-	let listItemWidth = $derived(listItemHeight * listItemRatio);
+	let listItemWidthUnits = $derived(listItemHeightUnits * listItemRatio);
 
 	let dialogOpen = $state(false);
 	let dialogId = $state<string>('');
 
-	onMount(async () => {
-		// Create a maplibre provider instance
-		mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
-			container: 'map',
-			zoom: 13,
-			center: getSearchLocation(searchPage.cityId),
-			style: '/style.json'
-			// Other maplibre options...
-		});
-		// Access the maplibre instance for direct map interactions
-		mapLibre = mapProvider.getMap();
-		// Initialize the map manager with the provider
-		mapManager = await MapManager.create(PUBLIC_ARENARIUM_MAPS_TOKEN, mapProvider, {
-			pin: {
-				fadeout: {
-					scale: 0.25,
-					color: 0
-				},
-				depth: 2
-			}
-		});
+	$effect(() => {
+		if (listItemWidthUnits > 0 && listItemHeightUnits > 0) {
+			tick().then(async () => {
+				// Create a maplibre provider instance
+				mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
+					container: 'map',
+					zoom: 13,
+					center: getSearchLocation(searchPage.cityId),
+					style: '/style.json'
+					// Other maplibre options...
+				});
+				// Access the maplibre instance for direct map interactions
+				mapLibre = mapProvider.getMap();
+				// Initialize the map manager with the provider
+				mapManager = await MapManager.create(PUBLIC_ARENARIUM_MAPS_TOKEN, mapProvider, {
+					pin: {
+						fadeout: {
+							scale: 0.25,
+							color: 0
+						},
+						depth: 2
+					}
+				});
+			});
+		}
 	});
 
-	onDestroy(() => {
-		// Clean up the list observer when the component is destroyed
-		listObserver?.disconnect();
+	$effect(() => {
+		return () => {
+			// Clean up the list observer when the component is destroyed
+			listObserver?.disconnect();
+			// Clean up the map manager when the component is destroyed
+			mapManager?.clear();
+		};
 	});
 
 	$effect(() => {
@@ -161,7 +170,8 @@
 
 	function onZoomIn() {
 		if (!mapLibre) return;
-		mapLibre.zoomIn();
+		// mapLibre.zoomIn();
+		mapLibre?.setCenter(getSearchLocation(searchDialog.cityId));
 	}
 
 	function onZoomOut() {
@@ -300,8 +310,8 @@
 					initialize: onInitializePopup,
 					element: document.createElement('div'),
 					dimensions: {
-						width: Math.min(listItemWidth, POPUP_WIDTH),
-						height: Math.min(listItemHeight, POPUP_HEIGHT),
+						width: Math.min(listItemWidthUnits * listItemUnit, POPUP_WIDTH),
+						height: Math.min(listItemHeightUnits * listItemUnit, POPUP_HEIGHT),
 						padding: 8
 					},
 					style: { background: '#ffffff', radius: POPUP_RADIUS }
@@ -443,7 +453,7 @@
 					'absolute top-0 left-0 h-full w-full': compact,
 					hidden: compact && !list
 				}}
-				style:width={`${listItemWidth * (compact ? 1 : 2) + listItemGapPadding * (compact ? 2 : 3)}px`}
+				style:width={`${listItemWidthUnits * (compact ? 1 : 2) + (compact ? 2 : 3)}rem`}
 			>
 				<ScrollArea class="h-full w-full rounded-md">
 					<div
@@ -457,8 +467,8 @@
 							<div
 								bind:this={listElements[i]}
 								data-id={item.propId.toString()}
-								style:height={`${listItemHeight}px`}
-								style:width={`${listItemWidth}px`}
+								style:height={`${listItemHeightUnits}rem`}
+								style:width={`${listItemWidthUnits}rem`}
 							>
 								<Details id={item.propId.toString()} data={searchItemDetails} />
 							</div>
@@ -501,7 +511,7 @@
 				autofocus={false}
 				trapFocus={false}
 			>
-				<div class="" style:height={`${listItemHeight}px`}>
+				<div style:height={`${listItemHeightUnits}rem`}>
 					<Details id={dialogId} data={searchItemDetails} />
 				</div>
 			</Dialog.Content>
