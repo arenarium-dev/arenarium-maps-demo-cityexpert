@@ -48,7 +48,7 @@
 	const TOOLTIP_RADIUS = 8;
 
 	const POPUP_WIDTH = 256 + 64;
-	const POPUP_HEIGHT = POPUP_WIDTH * (3 / 4);
+	const POPUP_HEIGHT = POPUP_WIDTH;
 	const POPUP_RADIUS = 12;
 
 	let width = $derived(outerWidth.current ?? 0);
@@ -72,13 +72,13 @@
 	let listObserver: IntersectionObserver | undefined;
 
 	let listItemGapPadding = 16;
-	let listItemRatio = 4 / 3;
+	let listItemRatio = 3 / 3;
 	let listItemHeight = $derived.by(() => {
 		if (compact) return width - 32;
 		if (listElement == undefined) return 0;
 
-		const listHeight = listElement.offsetHeight;
-		const listItemRows = listHeight > 1024 ? 4 : 3;
+		const listHeight = listElement.clientHeight;
+		const listItemRows = Math.round(listHeight / POPUP_WIDTH) > 3 ? 3 : 2;
 		const listItemsHeight =
 			listHeight - 2 * listItemGapPadding - (listItemRows - 1) * listItemGapPadding * 2;
 		return listItemsHeight / listItemRows;
@@ -299,7 +299,11 @@
 				marker.popup = {
 					initialize: onInitializePopup,
 					element: document.createElement('div'),
-					dimensions: { width: POPUP_WIDTH, height: POPUP_HEIGHT, padding: 8 * spacing },
+					dimensions: {
+						width: Math.min(listItemWidth, POPUP_WIDTH),
+						height: Math.min(listItemHeight, POPUP_HEIGHT),
+						padding: 8
+					},
 					style: { background: '#ffffff', radius: POPUP_RADIUS }
 				};
 			} else {
@@ -363,7 +367,7 @@
 {#if width > 0}
 	<div
 		class={{
-			'fixed top-0 left-0 grid h-full w-full  bg-[#f2f2f2]': true,
+			'fixed top-0 left-0 grid h-full w-full  bg-[#eeeeee]': true,
 			'grid-rows-[60px_1fr] gap-8 p-8': !compact,
 			'grid-rows-[60px_1fr_60px]': compact
 		}}
