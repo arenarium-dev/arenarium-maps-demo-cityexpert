@@ -191,7 +191,7 @@
 			<Dialog.Title class="flex items-center gap-2">Pretraga</Dialog.Title>
 		</Dialog.Header>
 		<div class="flex w-full max-w-full flex-col gap-2">
-			<Select.Root type="single" bind:value={category}>
+			<Select.Root type="single" bind:value={category} disabled>
 				<Select.Trigger class="w-full gap-3">
 					<span class="grow truncate text-start">{categoryLabel}</span>
 				</Select.Trigger>
