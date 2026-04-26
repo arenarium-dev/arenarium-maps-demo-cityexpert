@@ -161,18 +161,18 @@
 					ID {details.propId}
 				</div>
 				<button
-					class="absolute top-16 bottom-16 left-0 w-16 cursor-pointer text-transparent group-hover:text-[#df2d43]"
+					class="absolute top-16 bottom-16 left-0 flex w-16 cursor-pointer items-center justify-start text-transparent group-hover:text-[#df2d43]"
 					onclick={onImagePrev}
 					ondblclick={onImagePrev}
 				>
-					<IconChevronLeft size={30} class="my-px ml-2 justify-self-start" />
+					<IconChevronLeft size={30} class="my-px ml-2" />
 				</button>
 				<button
-					class="absolute top-16 right-0 bottom-16 w-16 cursor-pointer text-transparent group-hover:text-[#df2d43]"
+					class="absolute top-16 right-0 bottom-16 flex w-16 cursor-pointer items-center justify-end text-transparent group-hover:text-[#df2d43]"
 					onclick={onImageNext}
 					ondblclick={onImageNext}
 				>
-					<IconChevronRight size={30} class="my-px mr-2 justify-self-end " />
+					<IconChevronRight size={30} class="my-px mr-2" />
 				</button>
 			</div>
 
