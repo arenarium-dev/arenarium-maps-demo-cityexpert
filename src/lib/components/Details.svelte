@@ -10,7 +10,7 @@
 	import IconChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	import { latinise } from '$lib/latinise';
-	import { getSearchFurnishedLabel } from '$lib/search';
+	import { getSearchFurnishedLabel, getSearchPropertyLabel } from '$lib/search';
 	import type { SearchItemDetails } from '$lib/types';
 
 	let props: {
@@ -135,11 +135,11 @@
 		<a
 			href={url}
 			target="_blank"
-			class="absolute top-0 left-0 flex h-full w-full flex-col gap-0.5 font-[Poppins]"
+			class="absolute top-0 left-0 flex h-full w-full flex-col gap-2 font-[Poppins]"
 			transition:fade={{ duration: 250 }}
 		>
 			<div
-				class="group relative mb-2 w-full grow cursor-pointer overflow-hidden rounded-md bg-gray-100 *:transition-all *:duration-125"
+				class="group relative w-full grow cursor-pointer overflow-hidden rounded-2xl bg-gray-100 *:transition-all *:duration-125"
 			>
 				<Carousel.Root setApi={(api) => (imageApi = api)} class="absolute h-full w-full">
 					<Carousel.Content class="absolute ms-0 h-full w-full">
@@ -156,55 +156,55 @@
 					class="pointer-events-none absolute top-0 right-0 bottom-0 left-0 rounded-md inset-shadow-sm"
 				></div>
 				<div
-					class="pointer-events-none absolute top-2 left-2 text-xs font-semibold text-white select-none"
+					class="pointer-events-none absolute top-3 left-3 text-xs font-semibold text-white select-none"
 				>
 					ID {details.propId}
 				</div>
 				<button
-					class="absolute top-6 bottom-6 left-0 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
+					class="absolute top-16 bottom-16 left-0 w-16 cursor-pointer text-transparent group-hover:text-[#df2d43]"
 					onclick={onImagePrev}
 					ondblclick={onImagePrev}
 				>
-					<IconChevronLeft size={30} class="my-px mr-0.5 justify-self-start " />
+					<IconChevronLeft size={30} class="my-px ml-2 justify-self-start" />
 				</button>
 				<button
-					class="absolute top-6 right-0 bottom-6 w-10 cursor-pointer rounded-full text-transparent group-hover:text-[#df2d43]"
+					class="absolute top-16 right-0 bottom-16 w-16 cursor-pointer text-transparent group-hover:text-[#df2d43]"
 					onclick={onImageNext}
 					ondblclick={onImageNext}
 				>
-					<IconChevronRight size={30} class="my-px ml-0.5 justify-self-end " />
+					<IconChevronRight size={30} class="my-px mr-2 justify-self-end " />
 				</button>
 			</div>
 
-			<div class="font-primary flex shrink-0 items-center px-1 text-[#252525]">
-				<span class="grow font-[Montserrat] text-lg leading-6 font-bold">
-					{details.price.toLocaleString().replace(',', '.')} €
-				</span>
-				<img
-					class="size-6 overflow-hidden rounded-full object-cover object-[50%_1px]"
-					loading="lazy"
-					decoding="async"
-					src={`https://cityexpert.rs/icons/map/pin_${details.ptId}.png`}
-					alt={details.ptId.toString()}
-				/>
-			</div>
-
-			<div class="shrink-0 truncate px-1 pt-1 pb-2 text-sm leading-5.25 text-gray-500">
-				<span>{details.street}, {details.municipality}</span>
-			</div>
-
-			<div
-				class="font-primary grid shrink-0 grid-cols-[1fr_1fr_2fr] gap-1.5 text-center text-xs leading-6 font-semibold text-gray-600"
-			>
-				<div class="rounded-full bg-gray-100 px-2 whitespace-nowrap">
-					<span>{details.size} m²</span>
+			<div class="flex shrink-0 flex-col gap-0.5 px-3 py-1.5">
+				<div class="font-primary flex items-center pb-0.5 text-[#252525]">
+					<span class="grow font-[Montserrat] text-lg leading-6 font-bold">
+						{details.price} €
+					</span>
+					<img
+						class="size-6 overflow-hidden rounded-full object-cover object-[50%_1px]"
+						loading="lazy"
+						decoding="async"
+						src={`https://cityexpert.rs/icons/map/pin_${details.ptId}.png`}
+						alt={details.ptId.toString()}
+					/>
 				</div>
-				<!-- <div class="divider">•</div> -->
-				<div class="rounded-full bg-gray-100 px-2 whitespace-nowrap">
-					<span>{details.structure}</span>
+
+				<div class="truncate text-sm leading-5.25 font-medium text-gray-600">
+					<span class="font-semibold">{getSearchPropertyLabel(details.ptId)}</span>
+					<span class="font-medium text-gray-400">-</span>
+					<span class="font-medium text-gray-400">{details.street}, {details.municipality}</span>
 				</div>
-				<div class="rounded-full bg-gray-100 px-2 whitespace-nowrap">
+
+				<div class="truncate text-sm leading-5.25 font-semibold text-gray-600">
 					<span>{getSearchFurnishedLabel(details.onsite.basInfFurnished)}</span>
+					<span class="px-0.5 font-light text-gray-400">•</span>
+					<span>{details.size} m²</span>
+					<span class="px-0.5 font-light text-gray-400">•</span>
+					<span>
+						{details.structure}
+						{details.structure.startsWith('1') ? 'soba' : 'sobe'}
+					</span>
 				</div>
 			</div>
 		</a>

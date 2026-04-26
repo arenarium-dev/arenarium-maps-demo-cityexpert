@@ -21,14 +21,14 @@
 
 {#if details}
 	<div
-		class="absolute flex flex-col gap-1.5 p-1 font-[Poppins]"
+		class="absolute flex flex-col gap-0.5 p-1 font-[Poppins]"
 		style="--spacing: {spacing}px; width: {width}px; height: {height}px;"
 		transition:fade={{ duration: 250 }}
 	>
 		<div class="font-primary flex items-center pl-1 text-[#252525]">
-			<span class="grow font-[Montserrat] text-[calc(3.5*var(--spacing))] leading-5 font-bold"
-				>{details.price.toLocaleString().replace(',', '.')} €</span
-			>
+			<span class="grow font-[Montserrat] text-[calc(3.5*var(--spacing))] leading-5 font-bold">
+				{details.price} €
+			</span>
 			<img
 				class="h-5 w-5 overflow-hidden rounded-full object-cover object-[50%_1px]"
 				loading="lazy"
@@ -37,15 +37,11 @@
 			/>
 		</div>
 		<div
-			class="font-primary grid grid-cols-[auto_1fr] items-stretch justify-stretch gap-1.5 text-[calc(2.5*var(--spacing))] leading-5 font-semibold text-gray-600"
+			class="font-primary flex items-stretch justify-stretch gap-1 pl-1 text-[calc(2.75*var(--spacing))] leading-4 font-semibold text-gray-600"
 		>
-			<div class="rounded-full bg-gray-100 px-2 text-center whitespace-nowrap">
-				<span>{details.size} m²</span>
-			</div>
-			<!-- <div class="divider">•</div> -->
-			<div class="rounded-full bg-gray-100 px-2 text-center whitespace-nowrap">
-				<span>{details.structure.slice(0, 3)}</span>
-			</div>
+			<span>{details.size} m²</span>
+			<span class="text-gray-400">•</span>
+			<span>{details.structure.slice(0, 3)}</span>
 		</div>
 	</div>
 {:else}
@@ -58,7 +54,7 @@
 	>
 		<div class="flex flex-col gap-1">
 			<div class="h-5 w-full rounded-lg bg-gray-100"></div>
-			<div class="h-5 w-full rounded-lg bg-gray-100"></div>
+			<div class="h-4 w-full rounded-lg bg-gray-100"></div>
 		</div>
 	</div>
 {/if}

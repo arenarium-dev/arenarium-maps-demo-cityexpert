@@ -4,7 +4,7 @@
 	function getObjectPositionY(type: number) {
 		switch (type.toString()) {
 			case '1':
-				return 1;
+				return 0.5;
 			default:
 				return 0;
 		}

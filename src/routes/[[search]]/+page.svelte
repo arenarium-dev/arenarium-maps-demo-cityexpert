@@ -28,6 +28,7 @@
 	import IconGlobe from '@lucide/svelte/icons/globe';
 	import IconProfile from '@lucide/svelte/icons/user';
 	import IconMenu from '@lucide/svelte/icons/menu';
+	import IconClose from '@lucide/svelte/icons/x';
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
@@ -40,14 +41,14 @@
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
 
-	const PIN_RADIUS = 12;
+	const PIN_RADIUS = 10;
 	const PIN_STROKE = 2;
 
 	const TOOLTIP_RADIUS = 8;
-	const TOOLTIP_WIDTH = 104;
-	const TOOLTIP_HEIGHT = 54;
+	const TOOLTIP_WIDTH = 92;
+	const TOOLTIP_HEIGHT = 48;
 
-	const POPUP_RADIUS = 12;
+	const POPUP_RADIUS = 24;
 	const POPUP_WIDTH = 320;
 	const POPUP_HEIGHT = 320;
 
@@ -55,6 +56,7 @@
 	let compact = $derived(width && width <= 470 + 32);
 	let spacing = $derived(compact ? 0.8 : 1);
 
+	let mapMounted = false;
 	let mapLibre: maplibregl.Map | undefined;
 	let mapProvider: MaplibreProvider | undefined;
 	let mapManager = $state<MapManager>();
@@ -71,7 +73,7 @@
 	let listElements = $state<HTMLElement[]>([]);
 	let listObserver: IntersectionObserver | undefined;
 
-	let listItemGapPadding = 16;
+	let listItemGapPadding = 32;
 	let listItemRatio = 3 / 3;
 	let listItemUnit = 16;
 	let listItemHeightUnits = $derived.by(() => {
@@ -80,7 +82,7 @@
 
 		const listHeight = listElement.clientHeight;
 		const listItemRows = Math.round(listHeight / POPUP_WIDTH) > 3 ? 3 : 2;
-		const listItemsHeight = listHeight - listItemGapPadding * (2 + (listItemRows - 1) * 2);
+		const listItemsHeight = listHeight - listItemGapPadding * (2 + (listItemRows - 1));
 		const listItemHeight = listItemsHeight / listItemRows;
 		return listItemHeight / listItemUnit;
 	});
@@ -90,7 +92,10 @@
 	let dialogId = $state<string>('');
 
 	$effect(() => {
-		if (listItemWidthUnits > 0 && listItemHeightUnits > 0) {
+		if (listItemWidthUnits > 0 && listItemHeightUnits > 0 && mapMounted == false) {
+			// Flag mounted to true
+			mapMounted = true;
+			// Wait for the next tick before creating the map to ensure the proper dimensions
 			tick().then(async () => {
 				// Create a maplibre provider instance
 				mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
@@ -169,14 +174,11 @@
 	}
 
 	function onZoomIn() {
-		if (!mapLibre) return;
-		// mapLibre.zoomIn();
-		mapLibre?.setCenter(getSearchLocation(searchDialog.cityId));
+		mapLibre?.zoomIn();
 	}
 
 	function onZoomOut() {
-		if (!mapLibre) return;
-		mapLibre.zoomOut();
+		mapLibre?.zoomOut();
 	}
 
 	async function onInitializePin(id: string, element: HTMLElement): Promise<void> {
@@ -377,15 +379,16 @@
 {#if width > 0}
 	<div
 		class={{
-			'fixed top-0 left-0 grid h-full w-full  bg-[#eeeeee]': true,
-			'grid-rows-[60px_1fr] gap-8 p-8': !compact,
-			'grid-rows-[60px_1fr_60px]': compact
+			'fixed top-0 left-0 grid h-full w-full bg-white': true,
+			'grid-rows-[60px_1fr_60px]': compact,
+			'grid-rows-[96px_1fr]': !compact
 		}}
 	>
 		<header
 			class={{
-				'z-1 flex h-full w-full shrink-0 items-center gap-4 overflow-auto bg-white px-4 shadow-sm': true,
-				'rounded-xl': !compact
+				'z-1 flex h-full w-full shrink-0 items-center gap-4 overflow-auto bg-white shadow-sm': true,
+				'px-4': compact,
+				'px-8': !compact
 			}}
 		>
 			<a
@@ -395,7 +398,7 @@
 				{#if compact}
 					<img src="/favicon.ico" alt="logo" class="m-2" />
 				{:else}
-					<img src={SvgLogo} alt="logo" class="mx-3 mt-1 w-30" />
+					<img src={SvgLogo} alt="logo" class="mx-3 mt-1 w-36" />
 				{/if}
 			</a>
 			<div class="flex grow items-center justify-center">
@@ -414,54 +417,23 @@
 			</Button>
 		</header>
 
-		<div class="relative flex min-h-0 gap-8">
-			<div
-				class={{
-					'relative grow bg-white ': true,
-					'rounded-xl border p-4 shadow-sm': !compact
-				}}
-			>
-				<div id="map" class={{ 'absolute h-full w-full': true, 'rounded-md': !compact }}></div>
-				<div
-					class={{
-						'pointer-events-none absolute inset-shadow-sm': true,
-						'top-4 right-4 bottom-4 left-4 rounded-md': !compact,
-						'top-0 right-0 bottom-0 left-0': compact
-					}}
-				></div>
-				<div
-					class={{
-						'absolute top-8 right-8': !compact,
-						'absolute top-4 right-4': compact
-					}}
-				>
-					<ButtonGroup.Root orientation="vertical" class="rounded-md bg-white shadow-md">
-						<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
-							<IconPlus class="w-4" />
-						</Button>
-						<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
-							<IconMinus class="w-4" />
-						</Button>
-					</ButtonGroup.Root>
-				</div>
-			</div>
+		<div class={{ 'relative flex min-h-0': true, 'gap-8 px-8': !compact }}>
 			<div
 				bind:this={listElement}
 				class={{
-					'bg-white': true,
-					'relative rounded-xl border p-4 pr-0.75 shadow-sm': !compact,
 					'absolute top-0 left-0 h-full w-full': compact,
+					relative: !compact,
 					hidden: compact && !list
 				}}
-				style:width={`${listItemWidthUnits * (compact ? 1 : 2) + (compact ? 2 : 3)}rem`}
 			>
-				<ScrollArea class="h-full w-full rounded-md">
+				<ScrollArea class="h-full w-full rounded-md" scrollbarYClasses="my-8 -mr-4.75 w-2!">
 					<div
 						class={{
-							'grid gap-x-4 gap-y-8': true,
+							'grid gap-8': true,
 							'grid-cols-1 p-4': compact,
-							'grid-cols-2 pr-3.25': !compact
+							'grid-cols-2 py-8': !compact
 						}}
+						style:width={`${listItemWidthUnits * (compact ? 1 : 2) + (compact ? 0 : 2)}rem`}
 					>
 						{#each searchItems.values() as item, i (item.propId)}
 							<div
@@ -475,6 +447,31 @@
 						{/each}
 					</div>
 				</ScrollArea>
+			</div>
+			<div
+				class={{
+					'relative grow bg-white ': true,
+					'py-8': !compact,
+					hidden: list
+				}}
+			>
+				<div id="map" class={{ 'absolute h-full w-full': true, 'rounded-2xl': !compact }}></div>
+				<div
+					class={{
+						'pointer-events-none absolute inset-shadow-sm': true,
+						'top-8 right-0 bottom-8 left-0 rounded-2xl': !compact
+					}}
+				></div>
+				<div class={{ 'absolute top-4 right-4': compact, 'absolute top-12 right-4': !compact }}>
+					<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
+						<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
+							<IconPlus class="w-4" />
+						</Button>
+						<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
+							<IconMinus class="w-4" />
+						</Button>
+					</ButtonGroup.Root>
+				</div>
 			</div>
 		</div>
 
@@ -507,13 +504,19 @@
 
 		<Dialog.Root bind:open={dialogOpen}>
 			<Dialog.Content
-				class={{ 'flex flex-col p-2': true, 'max-w-100': !compact }}
+				class={{ 'flex flex-col rounded-3xl! p-2': true, 'max-w-100': !compact }}
 				autofocus={false}
 				trapFocus={false}
+				showCloseButton={false}
 			>
 				<div style:height={`${listItemHeightUnits}rem`}>
 					<Details id={dialogId} data={searchItemDetails} />
 				</div>
+				<Dialog.Close class="absolute top-3 right-3">
+					<Button variant="ghost" class="size-8 text-white">
+						<IconClose class="w-4" strokeWidth={3} />
+					</Button>
+				</Dialog.Close>
 			</Dialog.Content>
 		</Dialog.Root>
 	</div>

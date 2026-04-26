@@ -22,6 +22,23 @@ export function getSearchFurnishedLabel(furnished: number): string {
 	}
 }
 
+export function getSearchPropertyLabel(prId: number): string {
+	switch (prId) {
+		case 1:
+			return 'Stan';
+		case 2:
+			return 'Kuća';
+		case 3:
+			return 'Poslovni prostor';
+		case 4:
+			return 'Lokal';
+		case 5:
+			return 'Stan u kući';
+		default:
+			return '';
+	}
+}
+
 export function getSearchLocation(cityId: number): { lat: number; lng: number } {
 	switch (cityId) {
 		case 1:
