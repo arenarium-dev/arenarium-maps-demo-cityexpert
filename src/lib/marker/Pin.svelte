@@ -1,20 +1,23 @@
 <script lang="ts">
-	let props: { type: number } = $props();
+	let props: { width: number; height: number; type: number } = $props();
 
-	function getObjectPositionY(type: number) {
-		switch (type.toString()) {
+	const objectPositionY = $derived.by(() => {
+		switch (props.type.toString()) {
 			case '1':
 				return 0.5;
 			default:
 				return 0;
 		}
-	}
+	});
 </script>
 
-<div class="flex h-full w-full items-center justify-center overflow-hidden rounded-full">
+<div
+	class="flex items-center justify-center overflow-hidden rounded-full"
+	style="width: {props.width}px; height: {props.height}px;"
+>
 	<img
-		class="size-4 overflow-hidden rounded-full object-cover"
-		style="object-position: 0px {getObjectPositionY(props.type)}px;"
+		class="overflow-hidden rounded-full object-cover"
+		style="width: {props.width}px; height: {props.height}px; object-position: 0px {objectPositionY}px;"
 		src="https://cityexpert.rs/icons/map/pin_{props.type}.png"
 		alt={props.type.toString()}
 	/>

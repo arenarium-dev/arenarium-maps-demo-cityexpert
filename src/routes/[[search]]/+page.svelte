@@ -185,7 +185,13 @@
 		const item = searchItems.get(id);
 		if (!item) throw new Error('Item not found');
 
-		mount(Pin, { target: element, props: { type: item.ptId } });
+		const width = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
+		const height = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
+
+		mount(Pin, {
+			target: element,
+			props: { width, height, type: item.ptId }
+		});
 	}
 
 	async function onInitializeTooltip(id: string, element: HTMLElement): Promise<void> {
