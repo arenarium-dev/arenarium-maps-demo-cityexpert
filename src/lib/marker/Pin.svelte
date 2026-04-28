@@ -13,9 +13,8 @@
 
 <div class="flex h-full w-full items-center justify-center overflow-hidden rounded-full">
 	<img
-		class="aspect-square scale-[1.1] overflow-hidden rounded-full object-cover"
+		class="size-4 overflow-hidden rounded-full object-cover"
 		style="object-position: 0px {getObjectPositionY(props.type)}px;"
-		loading="lazy"
 		src="https://cityexpert.rs/icons/map/pin_{props.type}.png"
 		alt={props.type.toString()}
 	/>
