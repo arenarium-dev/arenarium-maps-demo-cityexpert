@@ -522,7 +522,7 @@
 					<Details id={dialogId} data={searchItemDetails} />
 				</div>
 				<Dialog.Close class="absolute top-3.5 right-3.5">
-					<Button variant="ghost" class="size-8 text-white">
+					<Button variant="ghost" class="size-10 text-white">
 						<IconClose class="w-4" strokeWidth={3} />
 					</Button>
 				</Dialog.Close>
