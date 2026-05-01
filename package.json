@@ -33,7 +33,7 @@
 		"prettier-plugin-tailwindcss": "^0.7.4",
 		"shadcn-svelte": "^1.2.7",
 		"svelte": "^5.55.5",
-		"svelte-check": "^4.4.6",
+		"svelte-check": "^4.4.7",
 		"tailwind-merge": "^3.5.0",
 		"tailwind-variants": "^3.2.2",
 		"tailwindcss": "^4.2.4",
@@ -43,8 +43,8 @@
 	},
 	"dependencies": {
 		"@arenarium/maps": "^1.4.20",
-		"@arenarium/maps-integration-maplibre": "^1.0.24",
+		"@arenarium/maps-integration-maplibre": "^1.0.26",
 		"maplibre-gl": "^5.24.0",
-		"wrangler": "^4.86.0"
+		"wrangler": "^4.87.0"
 	}
 }

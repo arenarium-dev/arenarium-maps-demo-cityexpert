@@ -95,18 +95,21 @@
 		if (listItemWidthUnits > 0 && listItemHeightUnits > 0 && mapMounted == false) {
 			// Flag mounted to true
 			mapMounted = true;
+
 			// Wait for the next tick before creating the map to ensure the proper dimensions
 			tick().then(async () => {
 				// Create a maplibre provider instance
 				mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
 					container: 'map',
 					zoom: 13,
+					zoomSnap: compact ? 0 : undefined,
 					center: getSearchLocation(searchPage.cityId),
 					style: '/style.json'
 					// Other maplibre options...
 				});
 				// Access the maplibre instance for direct map interactions
 				mapLibre = mapProvider.getMap();
+				console.log(mapLibre.getZoomSnap());
 				// Initialize the map manager with the provider
 				mapManager = await MapManager.create(PUBLIC_ARENARIUM_MAPS_TOKEN, mapProvider, {
 					pin: {
