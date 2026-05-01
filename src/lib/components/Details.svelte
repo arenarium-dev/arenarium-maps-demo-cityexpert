@@ -156,7 +156,7 @@
 					class="pointer-events-none absolute top-0 right-0 bottom-0 left-0 rounded-md inset-shadow-sm"
 				></div>
 				<div
-					class="pointer-events-none absolute top-4 left-4 text-xs font-semibold text-white select-none"
+					class="pointer-events-none absolute top-4 left-4 h-4 text-xs font-semibold text-white select-none"
 				>
 					ID {details.propId}
 				</div>

@@ -521,7 +521,7 @@
 				<div style:height={`${listItemHeightUnits}rem`}>
 					<Details id={dialogId} data={searchItemDetails} />
 				</div>
-				<Dialog.Close class="absolute top-4 right-4">
+				<Dialog.Close class="absolute top-3.5 right-3.5">
 					<Button variant="ghost" class="size-8 text-white">
 						<IconClose class="w-4" strokeWidth={3} />
 					</Button>
