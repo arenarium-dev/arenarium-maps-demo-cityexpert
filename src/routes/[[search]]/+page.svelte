@@ -71,6 +71,7 @@
 	let list = $state(false);
 	let listElement = $state<HTMLElement>();
 	let listElements = $state<HTMLElement[]>([]);
+	let listViewport = $state<HTMLElement | null>(null);
 	let listObserver: IntersectionObserver | undefined;
 
 	let listItemGapPadding = 32;
@@ -276,8 +277,7 @@
 		// Clear map markers
 		mapManager.clear();
 
-		// Wait for map and list to settle before adding markers
-		await tick();
+		listViewport?.scrollTo({ top: 0, behavior: 'instant' });
 
 		// Track added coordinates to avoid duplicates
 		let coordinateSet = new Set<string>();
@@ -437,7 +437,11 @@
 					hidden: compact && !list
 				}}
 			>
-				<ScrollArea class="h-full w-full rounded-md" scrollbarYClasses="my-8 -mr-4.75 w-2!">
+				<ScrollArea
+					bind:viewportRef={listViewport}
+					class="h-full w-full rounded-md"
+					scrollbarYClasses="my-8 -mr-4.75 w-2!"
+				>
 					<div
 						class={{
 							'grid gap-8': true,
