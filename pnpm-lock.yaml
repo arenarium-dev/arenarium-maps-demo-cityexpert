@@ -9,13 +9,13 @@ importers:
   .:
     dependencies:
       '@arenarium/maps':
-        specifier: ^1.4.21
-        version: 1.4.21(typescript@6.0.3)
+        specifier: ^1.4.23
+        version: 1.4.23(typescript@6.0.3)
       '@arenarium/maps-integration-maplibre':
         specifier: ^1.0.26
         version: 1.0.26(maplibre-gl@5.24.0)(typescript@6.0.3)
       maplibre-gl:
-        specifier: ^5.24.0
+        specifier: 5.24.0
         version: 5.24.0
       wrangler:
         specifier: ^4.87.0
@@ -104,8 +104,8 @@ packages:
     peerDependencies:
       maplibre-gl: ^5.21.0
 
-  '@arenarium/maps@1.4.21':
-    resolution: {integrity: sha512-4hbEvCiJtHqL8eJ2pX/tDigd9b4GmXsD+25UqlYT4pggqWycvD6+EKamU1RGrRIUyuTgoz7gNJDQMS+LDJKJsQ==}
+  '@arenarium/maps@1.4.23':
+    resolution: {integrity: sha512-NgdC9X80CNe1RpwB7GzyChIgKJXeSXvRysuOcWwTM7FpRtaDl7HrhWHPzeb1Qkt57tnmLmN6foMRlwm4fGNTnw==}
 
   '@cloudflare/kv-asset-handler@0.5.0':
     resolution: {integrity: sha512-jxQYkj8dSIzc0cD6cMMNdOc1UVjqSqu8BZdor5s8cGjW2I8BjODt/kWPVdY+u9zj3ms75Q5qaZgnxUad83+eAg==}
@@ -1627,7 +1627,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@arenarium/maps@1.4.21(typescript@6.0.3)':
+  '@arenarium/maps@1.4.23(typescript@6.0.3)':
     dependencies:
       '@arenarium/maps-core': 1.0.31(typescript@6.0.3)
       svelte: 5.55.5

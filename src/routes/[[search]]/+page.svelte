@@ -102,14 +102,13 @@
 				mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
 					container: 'map',
 					zoom: 13,
-					zoomSnap: compact ? 0 : undefined,
+					zoomSnap: compact ? 0 : 0.2,
 					center: getSearchLocation(searchPage.cityId),
 					style: '/style.json'
 					// Other maplibre options...
 				});
 				// Access the maplibre instance for direct map interactions
 				mapLibre = mapProvider.getMap();
-				console.log(mapLibre.getZoomSnap());
 				// Initialize the map manager with the provider
 				mapManager = await MapManager.create(PUBLIC_ARENARIUM_MAPS_TOKEN, mapProvider, {
 					pin: {
@@ -276,6 +275,9 @@
 
 		// Clear map markers
 		mapManager.clear();
+
+		// Wait for map and list to settle before adding markers
+		await tick();
 
 		// Track added coordinates to avoid duplicates
 		let coordinateSet = new Set<string>();
@@ -473,10 +475,10 @@
 				></div>
 				<div class={{ 'absolute top-4 right-4': compact, 'absolute top-12 right-4': !compact }}>
 					<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
-						<Button onclick={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
+						<Button onpointerdown={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
 							<IconPlus class="w-4" />
 						</Button>
-						<Button onclick={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
+						<Button onpointerdown={onZoomOut} variant="ghost" class="size-8 text-muted-foreground">
 							<IconMinus class="w-4" />
 						</Button>
 					</ButtonGroup.Root>
