@@ -3,6 +3,7 @@
 	import { fade } from 'svelte/transition';
 	import type { SvelteMap } from 'svelte/reactivity';
 
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import type { CarouselAPI } from '$lib/components/ui/carousel/context.js';
 
@@ -213,7 +214,7 @@
 			class="absolute top-0 left-0 flex h-full w-full flex-col gap-2"
 			transition:fade={{ duration: 250 }}
 		>
-			<div class="w-full grow overflow-hidden rounded-lg bg-gray-100"></div>
+			<div class="w-full grow rounded-lg bg-gray-100"></div>
 			<div class="h-6 w-full rounded-lg bg-gray-100"></div>
 			<div class="h-4.5 w-full rounded-lg bg-gray-100"></div>
 			<div class="h-6 w-full rounded-lg bg-gray-100"></div>

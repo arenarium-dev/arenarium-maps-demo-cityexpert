@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount, mount, onDestroy, tick, untrack } from 'svelte';
+	import { mount, tick, untrack } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { outerWidth } from 'svelte/reactivity/window';
 	import { page } from '$app/state';
@@ -40,6 +41,7 @@
 	import type { SearchItem, SearchItemDetails, SearchRequest, SearchResult } from '$lib/types';
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
+	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
 
 	const PIN_RADIUS = 10;
 	const PIN_STROKE = 2;
@@ -63,6 +65,7 @@
 
 	let searchPage = $derived<SearchRequest>(getSearchFromPath(page.params.search));
 	let searchDialog = $state<SearchRequest>(getSearchFromPath(page.params.search));
+	let searchLoadings = $state(0);
 	let searchMarkers: Map<string, MapMarkerProperties> = new Map();
 	let searchItems: SvelteMap<string, SearchItem> = new SvelteMap();
 	let searchItemDetails: SvelteMap<string, SearchItemDetails> = new SvelteMap();
@@ -264,104 +267,109 @@
 	async function updateSearchItems(search: SearchRequest) {
 		if (!mapManager) return;
 
-		const searchUrl = `/api/search?req=${encodeURIComponent(JSON.stringify(search))}`;
-		const searchResponse = await fetch(searchUrl);
-		if (!searchResponse.ok) throw new Error('Failed to search');
-		const searchResult: SearchResult = await searchResponse.json();
+		try {
+			searchLoadings++;
+			const searchUrl = `/api/search?req=${encodeURIComponent(JSON.stringify(search))}`;
+			const searchResponse = await fetch(searchUrl);
+			if (!searchResponse.ok) throw new Error('Failed to search');
+			const searchResult: SearchResult = await searchResponse.json();
 
-		// Clear existing markers
-		searchMarkers.clear();
-		searchItems.clear();
-		searchItemDetails.clear();
+			// Clear existing markers
+			searchMarkers.clear();
+			searchItems.clear();
+			searchItemDetails.clear();
 
-		// Clear map markers
-		mapManager.clear();
+			// Clear map markers
+			mapManager.clear();
 
-		listViewport?.scrollTo({ top: 0, behavior: 'instant' });
+			listViewport?.scrollTo({ top: 0, behavior: 'instant' });
 
-		// Track added coordinates to avoid duplicates
-		let coordinateSet = new Set<string>();
+			// Track added coordinates to avoid duplicates
+			let coordinateSet = new Set<string>();
 
-		// Create markers
-		for (let i = 0; i < searchResult.length; i++) {
-			const item = searchResult[i];
+			// Create markers
+			for (let i = 0; i < searchResult.length; i++) {
+				const item = searchResult[i];
 
-			// Check if the marker with the same coordinates is already added
-			const coordinateKey = item.mapLat + ',' + item.mapLng;
-			if (coordinateSet.has(coordinateKey)) continue;
-			coordinateSet.add(coordinateKey);
+				// Check if the marker with the same coordinates is already added
+				const coordinateKey = item.mapLat + ',' + item.mapLng;
+				if (coordinateSet.has(coordinateKey)) continue;
+				coordinateSet.add(coordinateKey);
 
-			const marker: MapMarkerProperties = {
-				id: item.propId.toString(),
-				rank: searchResult.length - i,
-				lat: item.mapLat,
-				lng: item.mapLng,
-				pin: {
-					initialize: onInitializePin,
-					element: document.createElement('div'),
-					dimensions: { radius: PIN_RADIUS * spacing, stroke: PIN_STROKE * spacing },
-					style: { stroke: '#ffffff', background: '#df2d4344' }
-				},
-				tooltip: {
-					initialize: onInitializeTooltip,
-					element: document.createElement('div'),
-					dimensions: {
-						width: TOOLTIP_WIDTH * spacing,
-						height: TOOLTIP_HEIGHT * spacing,
-						padding: TOOLTIP_RADIUS * spacing
+				const marker: MapMarkerProperties = {
+					id: item.propId.toString(),
+					rank: searchResult.length - i,
+					lat: item.mapLat,
+					lng: item.mapLng,
+					pin: {
+						initialize: onInitializePin,
+						element: document.createElement('div'),
+						dimensions: { radius: PIN_RADIUS * spacing, stroke: PIN_STROKE * spacing },
+						style: { stroke: '#ffffff', background: '#df2d4344' }
 					},
-					style: {
-						background: '#ffffff',
-						radius: 12 * spacing,
-						filter: 'drop-shadow(rgba(0, 0, 0, 0.25) 0px 2px 2px)'
+					tooltip: {
+						initialize: onInitializeTooltip,
+						element: document.createElement('div'),
+						dimensions: {
+							width: TOOLTIP_WIDTH * spacing,
+							height: TOOLTIP_HEIGHT * spacing,
+							padding: TOOLTIP_RADIUS * spacing
+						},
+						style: {
+							background: '#ffffff',
+							radius: 12 * spacing,
+							filter: 'drop-shadow(rgba(0, 0, 0, 0.25) 0px 2px 2px)'
+						}
+					}
+				};
+
+				if (compact === false) {
+					marker.popup = {
+						initialize: onInitializePopup,
+						element: document.createElement('div'),
+						dimensions: {
+							width: Math.min(listItemWidthUnits * listItemUnit, POPUP_WIDTH),
+							height: Math.min(listItemHeightUnits * listItemUnit, POPUP_HEIGHT),
+							padding: 8
+						},
+						style: { background: '#ffffff', radius: POPUP_RADIUS }
+					};
+				} else {
+					marker.tooltip.element.addEventListener('click', () => {
+						dialogId = marker.id;
+						dialogOpen = true;
+					});
+				}
+
+				searchItems.set(item.propId.toString(), item);
+				searchMarkers.set(item.propId.toString(), marker);
+			}
+
+			// Update map markers
+			mapManager.updateMarkers(Array.from(searchMarkers.values()));
+
+			// Wait for the next tick to ensure elements are in the DOM
+			await tick();
+
+			// Disconnect the list observer before re-creating it
+			listObserver?.disconnect();
+
+			// Create the list observer
+			if (listElement) {
+				listObserver = new IntersectionObserver(onListObserve, {
+					root: listElement,
+					threshold: 0
+				});
+
+				// Observe list elements for intersection changes
+				for (const element of listElements) {
+					if (element instanceof HTMLElement) {
+						listObserver.observe(element);
 					}
 				}
-			};
-
-			if (compact === false) {
-				marker.popup = {
-					initialize: onInitializePopup,
-					element: document.createElement('div'),
-					dimensions: {
-						width: Math.min(listItemWidthUnits * listItemUnit, POPUP_WIDTH),
-						height: Math.min(listItemHeightUnits * listItemUnit, POPUP_HEIGHT),
-						padding: 8
-					},
-					style: { background: '#ffffff', radius: POPUP_RADIUS }
-				};
-			} else {
-				marker.tooltip.element.addEventListener('click', () => {
-					dialogId = marker.id;
-					dialogOpen = true;
-				});
 			}
-
-			searchItems.set(item.propId.toString(), item);
-			searchMarkers.set(item.propId.toString(), marker);
-		}
-
-		// Update map markers
-		mapManager.updateMarkers(Array.from(searchMarkers.values()));
-
-		// Wait for the next tick to ensure elements are in the DOM
-		await tick();
-
-		// Disconnect the list observer before re-creating it
-		listObserver?.disconnect();
-
-		// Create the list observer
-		if (listElement) {
-			listObserver = new IntersectionObserver(onListObserve, {
-				root: listElement,
-				threshold: 0
-			});
-
-			// Observe list elements for intersection changes
-			for (const element of listElements) {
-				if (element instanceof HTMLElement) {
-					listObserver.observe(element);
-				}
-			}
+		} finally {
+			searchLoadings--;
 		}
 	}
 
@@ -373,6 +381,7 @@
 		if (exists) return;
 
 		try {
+			searchLoadings++;
 			searchItemDetailsLoading.set(id, true);
 
 			const url = `api/details?id=${id}`;
@@ -383,6 +392,7 @@
 			searchItemDetails.set(id, details);
 		} finally {
 			searchItemDetailsLoading.set(id, false);
+			searchLoadings--;
 		}
 	}
 </script>
@@ -534,5 +544,11 @@
 				</Dialog.Close>
 			</Dialog.Content>
 		</Dialog.Root>
+	</div>
+{/if}
+
+{#if searchLoadings > 0}
+	<div class="fixed top-0 left-0 w-full" transition:fade={{ duration: 100, delay: 100 }}>
+		<Skeleton class="h-0.5 w-full bg-[#df2d43]" />
 	</div>
 {/if}

@@ -3,6 +3,8 @@
 	import { fade } from 'svelte/transition';
 	import type { SvelteMap } from 'svelte/reactivity';
 
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+
 	import type { SearchItemDetails } from '$lib/types';
 
 	let props: {
