@@ -17,6 +17,7 @@
 
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
@@ -426,16 +427,51 @@
 				<Search {searchPage} bind:searchDialog />
 			</div>
 			{#if !compact}
-				<Button variant="ghost" size="icon" class=" bg-white! text-muted-foreground">
-					<IconGlobe />
-				</Button>
-				<Button variant="ghost" size="icon" class=" bg-white! text-muted-foreground">
-					<IconProfile />
-				</Button>
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button
+								{...props}
+								variant="ghost"
+								size="icon"
+								class=" bg-white! text-muted-foreground"
+							>
+								<IconGlobe />
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content class="mt-6 mr-4 w-56" align="start">
+						<DropdownMenu.Label>Jezik</DropdownMenu.Label>
+						<DropdownMenu.Group>
+							<DropdownMenu.Item>Srpski</DropdownMenu.Item>
+							<DropdownMenu.Item>English</DropdownMenu.Item>
+							<DropdownMenu.Item>Russian</DropdownMenu.Item>
+						</DropdownMenu.Group>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
 			{/if}
-			<Button variant="ghost" size="icon" class="bg-white! text-muted-foreground">
-				<IconMenu />
-			</Button>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Button {...props} variant="ghost" size="icon" class=" bg-white! text-muted-foreground">
+							<IconProfile />
+						</Button>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content class="mt-6 mr-4 w-56" align="start">
+					<DropdownMenu.Label>Moj nalog</DropdownMenu.Label>
+					<DropdownMenu.Group>
+						<DropdownMenu.Item>Prijavi se</DropdownMenu.Item>
+					</DropdownMenu.Group>
+					<DropdownMenu.Separator />
+					<DropdownMenu.Label>Informacije</DropdownMenu.Label>
+					<DropdownMenu.Group>
+						<DropdownMenu.Item>Kreditni savetnik</DropdownMenu.Item>
+						<DropdownMenu.Item>Cenovnik</DropdownMenu.Item>
+						<DropdownMenu.Item>O nama</DropdownMenu.Item>
+					</DropdownMenu.Group>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</header>
 
 		<div class={{ 'relative flex min-h-0': true, 'gap-8 px-8': !compact }}>
