@@ -191,10 +191,10 @@
 					/>
 				</div>
 
-				<div class="truncate text-sm leading-5.25 font-medium text-gray-600">
-					<span class="font-semibold">{getSearchPropertyLabel(details.ptId)}</span>
-					<span class="font-medium text-gray-400">-</span>
-					<span class="font-medium text-gray-400">{details.street}, {details.municipality}</span>
+				<div class="truncate text-sm leading-5.25 font-medium text-gray-400">
+					<span class="font-semibold text-gray-600">{getSearchPropertyLabel(details.ptId)}</span>
+					<span class="font-medium">-</span>
+					<span class="font-medium">{details.street}, {details.municipality}</span>
 				</div>
 
 				<div class="truncate text-sm leading-5.25 font-semibold text-gray-600">
