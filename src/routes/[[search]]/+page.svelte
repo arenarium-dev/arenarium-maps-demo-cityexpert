@@ -27,9 +27,10 @@
 	import IconMinus from '@lucide/svelte/icons/minus';
 	import IconList from '@lucide/svelte/icons/rows-3';
 	import IconMap from '@lucide/svelte/icons/map';
+	import IconSettings from '@lucide/svelte/icons/settings';
 	import IconGlobe from '@lucide/svelte/icons/globe';
 	import IconProfile from '@lucide/svelte/icons/user';
-	import IconMenu from '@lucide/svelte/icons/menu';
+	import IconDropdown from '@lucide/svelte/icons/chevron-down';
 	import IconClose from '@lucide/svelte/icons/x';
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
@@ -333,7 +334,11 @@
 							height: Math.min(listItemHeightUnits * listItemUnit, POPUP_HEIGHT),
 							padding: 8
 						},
-						style: { background: '#ffffff', radius: POPUP_RADIUS }
+						style: {
+							background: '#ffffff',
+							radius: POPUP_RADIUS,
+							filter: 'drop-shadow(rgba(0, 0, 0, 0.25) 0px 4px 4px)'
+						}
 					};
 				} else {
 					marker.tooltip.element.addEventListener('click', () => {
@@ -523,6 +528,25 @@
 						'top-8 right-0 bottom-8 left-0 rounded-2xl': !compact
 					}}
 				></div>
+				<div class={{ 'absolute top-4 left-4': compact, 'absolute top-12 left-4': !compact }}>
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger>
+							{#snippet child({ props })}
+								<Button {...props} variant="outline" size="icon" class="shadow-md">
+									<IconSettings class="text-muted-foreground" />
+								</Button>
+							{/snippet}
+						</DropdownMenu.Trigger>
+						<DropdownMenu.Content align="start" class="w-60">
+							<DropdownMenu.Label>Podaci</DropdownMenu.Label>
+							<DropdownMenu.Group>
+								<DropdownMenu.Item>Cena</DropdownMenu.Item>
+								<DropdownMenu.Item>Cena, Povrsina, Struktura</DropdownMenu.Item>
+								<DropdownMenu.Item>Cena, Povrsina, Struktura, Slika</DropdownMenu.Item>
+							</DropdownMenu.Group>
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
+				</div>
 				<div class={{ 'absolute top-4 right-4': compact, 'absolute top-12 right-4': !compact }}>
 					<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
 						<Button onpointerdown={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
