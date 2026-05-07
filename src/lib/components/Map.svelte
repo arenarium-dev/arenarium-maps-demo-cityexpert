@@ -174,7 +174,7 @@
 	function getModeLabel(mode: string): string {
 		switch (mode) {
 			case 'small':
-				return 'Cena, Tip';
+				return 'Cena';
 			case 'medium':
 				return 'Cena, Tip, Povrsina, Struktura';
 			case 'large':

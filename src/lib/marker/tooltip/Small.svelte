@@ -28,7 +28,7 @@
 		transition:fade={{ duration: 250 }}
 	>
 		<div class="font-primary flex h-full items-center justify-center text-[#252525]">
-			<span class="font-[Montserrat] text-[calc(3*var(--spacing))] leading-4 font-bold">
+			<span class="font-[Montserrat] text-[calc(3.4*var(--spacing))] font-bold">
 				{details.price > 9999 ? `${(details.price / 1000).toFixed(1)}K` : details.price} €
 			</span>
 			<!-- <div class="size-4">
