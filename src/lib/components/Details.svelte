@@ -183,7 +183,7 @@
 					<span class="grow font-[Montserrat] text-lg leading-6 font-bold">
 						{details.price} €
 					</span>
-					<div class="size-6">
+					<div class="flex size-6 items-center justify-center">
 						<Type type={details.ptId} />
 					</div>
 				</div>
