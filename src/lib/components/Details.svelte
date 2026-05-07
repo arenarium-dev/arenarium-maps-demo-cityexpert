@@ -3,7 +3,8 @@
 	import { fade } from 'svelte/transition';
 	import type { SvelteMap } from 'svelte/reactivity';
 
-	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import Type from '$lib/components/Type.svelte';
+
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import type { CarouselAPI } from '$lib/components/ui/carousel/context.js';
 
@@ -182,13 +183,9 @@
 					<span class="grow font-[Montserrat] text-lg leading-6 font-bold">
 						{details.price} €
 					</span>
-					<img
-						class="size-6 overflow-hidden rounded-full object-cover object-[50%_1px]"
-						loading="lazy"
-						decoding="async"
-						src={`https://cityexpert.rs/icons/map/pin_${details.ptId}.png`}
-						alt={details.ptId.toString()}
-					/>
+					<div class="size-6">
+						<Type type={details.ptId} />
+					</div>
 				</div>
 
 				<div class="truncate text-sm leading-5.25 font-medium text-gray-400">

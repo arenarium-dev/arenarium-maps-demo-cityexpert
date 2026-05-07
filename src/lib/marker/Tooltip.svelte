@@ -3,7 +3,7 @@
 	import { fade } from 'svelte/transition';
 	import type { SvelteMap } from 'svelte/reactivity';
 
-	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import Type from '$lib/components/Type.svelte';
 
 	import type { SearchItemDetails } from '$lib/types';
 
@@ -29,19 +29,16 @@
 	>
 		<div class="font-primary flex items-center pl-1 text-[#252525]">
 			<span class="grow font-[Montserrat] text-[calc(3.5*var(--spacing))] leading-5 font-bold">
-				{details.price} €
+				{details.price > 9999 ? `${(details.price / 1000).toFixed(1)}K` : details.price} €
 			</span>
-			<img
-				class="h-5 w-5 overflow-hidden rounded-full object-cover object-[50%_1px]"
-				loading="lazy"
-				src={`https://cityexpert.rs/icons/map/pin_${details.ptId}.png`}
-				alt={details.ptId.toString()}
-			/>
+			<div class="size-4">
+				<Type type={details.ptId} />
+			</div>
 		</div>
 		<div
 			class="font-primary flex items-stretch justify-stretch gap-1 pl-1 text-[calc(2.75*var(--spacing))] leading-4 font-semibold text-gray-600"
 		>
-			<span>{details.size} m²</span>
+			<span>{details.size > 999 ? `${(details.size / 1000).toFixed(1)}K` : details.size} m²</span>
 			<span class="text-gray-400">•</span>
 			<span>{details.structure.slice(0, 3)}</span>
 		</div>

@@ -19,13 +19,13 @@
 	import Tooltip from '$lib/marker/Tooltip.svelte';
 	import Popup from '$lib/marker/Popup.svelte';
 
-	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	import IconPlus from '@lucide/svelte/icons/plus';
 	import IconMinus from '@lucide/svelte/icons/minus';
-	import IconSettings from '@lucide/svelte/icons/settings';
+	import IconPin from '@lucide/svelte/icons/map-pin';
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
@@ -53,6 +53,13 @@
 		onSearchDetailsOpen
 	}: Props = $props();
 
+	const Modes = {
+		Small: 'small',
+		Medium: 'medium',
+		Large: 'large'
+	};
+
+	let mode = $state<string>(Modes.Medium);
 	let spacing = $derived(compact ? 0.8 : 1);
 
 	let mapProvider: MaplibreProvider | undefined;
@@ -103,63 +110,17 @@
 		}
 	});
 
-	function onZoomIn() {
-		mapLibre?.zoomIn();
-	}
-
-	function onZoomOut() {
-		mapLibre?.zoomOut();
-	}
-
-	async function onInitializePin(id: string, element: HTMLElement): Promise<void> {
-		const item = items.get(id);
-		if (!item) throw new Error('Item not found');
-
-		const width = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
-		const height = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
-
-		mount(Pin, {
-			target: element,
-			props: { width, height, type: item.ptId }
-		});
-	}
-
-	async function onInitializeTooltip(id: string, element: HTMLElement): Promise<void> {
-		const marker = mapMarkers.get(id);
-		if (!marker) throw new Error('Marker not found');
-
-		const dimensions = marker.tooltip?.dimensions;
-		if (!dimensions) throw new Error('Tooltip style not found');
-
-		const width = dimensions.width;
-		const height = dimensions.height;
-		const data = details;
-
-		mount(Tooltip, {
-			target: element,
-			props: { id, spacing, width, height, data }
-		});
-
-		if (details.get(id) === undefined) await onSearchDetailsRequest(id);
-	}
-
-	async function onInitializePopup(id: string, element: HTMLElement): Promise<void> {
-		const marker = mapMarkers.get(id);
-		if (!marker) throw new Error('Marker not found');
-
-		const dimensions = marker.popup?.dimensions;
-		if (!dimensions) throw new Error('Popup style not found');
-
-		const width = dimensions.width;
-		const height = dimensions.height;
-		const data = details;
-
-		mount(Popup, {
-			target: element,
-			props: { id, spacing, width, height, data }
-		});
-
-		if (details.get(id) === undefined) await onSearchDetailsRequest(id);
+	function getModeLabel(mode: string): string {
+		switch (mode) {
+			case 'small':
+				return 'Cena';
+			case 'medium':
+				return 'Cena, Povrsina, Struktura';
+			case 'large':
+				return 'Cena, Povrsina, Struktura, Slika';
+			default:
+				return '';
+		}
 	}
 
 	function updateMarkers(searchItems: SearchItem[]) {
@@ -234,30 +195,89 @@
 		// Update map markers
 		mapManager.updateMarkers(Array.from(mapMarkers.values()));
 	}
+
+	async function onInitializePin(id: string, element: HTMLElement): Promise<void> {
+		const item = items.get(id);
+		if (!item) throw new Error('Item not found');
+
+		const width = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
+		const height = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
+
+		mount(Pin, {
+			target: element,
+			props: { width, height, type: item.ptId }
+		});
+	}
+
+	async function onInitializeTooltip(id: string, element: HTMLElement): Promise<void> {
+		const marker = mapMarkers.get(id);
+		if (!marker) throw new Error('Marker not found');
+
+		const dimensions = marker.tooltip?.dimensions;
+		if (!dimensions) throw new Error('Tooltip style not found');
+
+		const width = dimensions.width;
+		const height = dimensions.height;
+		const data = details;
+
+		mount(Tooltip, {
+			target: element,
+			props: { id, spacing, width, height, data }
+		});
+
+		if (details.get(id) === undefined) await onSearchDetailsRequest(id);
+	}
+
+	async function onInitializePopup(id: string, element: HTMLElement): Promise<void> {
+		const marker = mapMarkers.get(id);
+		if (!marker) throw new Error('Marker not found');
+
+		const dimensions = marker.popup?.dimensions;
+		if (!dimensions) throw new Error('Popup style not found');
+
+		const width = dimensions.width;
+		const height = dimensions.height;
+		const data = details;
+
+		mount(Popup, {
+			target: element,
+			props: { id, spacing, width, height, data }
+		});
+
+		if (details.get(id) === undefined) await onSearchDetailsRequest(id);
+	}
+
+	function onZoomIn() {
+		mapLibre?.zoomIn();
+	}
+
+	function onZoomOut() {
+		mapLibre?.zoomOut();
+	}
 </script>
 
 <div id="map" class="absolute h-full w-full"></div>
-<div class="absolute top-4 left-4">
-	<DropdownMenu.Root>
-		<DropdownMenu.Trigger>
-			{#snippet child({ props })}
-				<Button {...props} variant="outline" size="icon" class="shadow-md">
-					<IconSettings class="text-muted-foreground" />
-				</Button>
-			{/snippet}
-		</DropdownMenu.Trigger>
-		<DropdownMenu.Content align="start" class="w-60">
-			<DropdownMenu.Label>Podaci</DropdownMenu.Label>
-			<DropdownMenu.Group>
-				<DropdownMenu.Item>Cena</DropdownMenu.Item>
-				<DropdownMenu.Item>Cena, Povrsina, Struktura</DropdownMenu.Item>
-				<DropdownMenu.Item>Cena, Povrsina, Struktura, Slika</DropdownMenu.Item>
-			</DropdownMenu.Group>
-		</DropdownMenu.Content>
-	</DropdownMenu.Root>
+<div class="absolute top-4 right-4 rounded-lg">
+	<Select.Root type="single" bind:value={mode}>
+		<Select.Trigger
+			class="size-8 gap-4 overflow-hidden border-none bg-white px-2 text-muted-foreground shadow-sm"
+		>
+			<IconPin class="w-4 shrink-0" />
+		</Select.Trigger>
+		<Select.Content align="end" class="mt-2">
+			<Select.Group class="font-medium ">
+				<Select.Label>Podaci</Select.Label>
+				{#each Object.values(Modes) as mode}
+					<Select.Item value={mode} label={mode}>
+						{getModeLabel(mode)}
+					</Select.Item>
+				{/each}
+			</Select.Group>
+		</Select.Content>
+	</Select.Root>
 </div>
-<div class="absolute top-4 right-4">
-	<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-md">
+<div class="absolute right-4 bottom-12">
+	<ButtonGroup.Root orientation="vertical" class="rounded-lg bg-white shadow-sm">
 		<Button onpointerdown={onZoomIn} variant="ghost" class="size-8 text-muted-foreground">
 			<IconPlus class="w-4" />
 		</Button>
