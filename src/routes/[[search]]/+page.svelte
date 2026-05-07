@@ -220,7 +220,7 @@
 		<!-- Header -->
 		<header
 			class={{
-				'z-1 flex h-full w-full shrink-0 items-center gap-4 overflow-auto bg-white shadow-sm': true,
+				'relative z-1 flex h-full w-full shrink-0 items-center gap-4 overflow-auto bg-white shadow-sm': true,
 				'px-4': compact,
 				'px-8': !compact
 			}}

@@ -8,16 +8,28 @@
 		POPUP_HEIGHT,
 		POPUP_RADIUS,
 		POPUP_WIDTH,
-		TOOLTIP_HEIGHT,
-		TOOLTIP_RADIUS,
-		TOOLTIP_WIDTH
+		POPUP_PADDING,
+		TOOLTIP_SMALL_HEIGHT,
+		TOOLTIP_SMALL_RADIUS,
+		TOOLTIP_SMALL_WIDTH,
+		TOOLTIP_SMALL_PADDING,
+		TOOLTIP_MEDIUM_HEIGHT,
+		TOOLTIP_MEDIUM_RADIUS,
+		TOOLTIP_MEDIUM_WIDTH,
+		TOOLTIP_MEDIUM_PADDING,
+		TOOLTIP_LARGE_HEIGHT,
+		TOOLTIP_LARGE_RADIUS,
+		TOOLTIP_LARGE_WIDTH,
+		TOOLTIP_LARGE_PADDING
 	} from '$lib/constants';
 	import { getSearchLocation } from '$lib/search';
 	import type { SearchItem, SearchItemDetails, SearchRequest } from '$lib/types';
 
 	import Pin from '$lib/marker/Pin.svelte';
-	import Tooltip from '$lib/marker/Tooltip.svelte';
 	import Popup from '$lib/marker/Popup.svelte';
+	import TooltipSmall from '$lib/marker/tooltip/Small.svelte';
+	import TooltipMedium from '$lib/marker/tooltip/Medium.svelte';
+	import TooltipLarge from '$lib/marker/tooltip/Large.svelte';
 
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
@@ -62,12 +74,53 @@
 	let mode = $state<string>(Modes.Medium);
 	let spacing = $derived(compact ? 0.8 : 1);
 
+	let pinDimensions = $derived({
+		radius: PIN_RADIUS * spacing,
+		stroke: PIN_STROKE * spacing
+	});
+	let tooltipDimensions = $derived.by(() => {
+		switch (mode) {
+			case Modes.Small:
+				return {
+					width: TOOLTIP_SMALL_WIDTH * spacing,
+					height: TOOLTIP_SMALL_HEIGHT * spacing,
+					radius: TOOLTIP_SMALL_RADIUS * spacing,
+					padding: TOOLTIP_SMALL_PADDING * spacing
+				};
+			case Modes.Medium:
+				return {
+					width: TOOLTIP_MEDIUM_WIDTH * spacing,
+					height: TOOLTIP_MEDIUM_HEIGHT * spacing,
+					radius: TOOLTIP_MEDIUM_RADIUS * spacing,
+					padding: TOOLTIP_MEDIUM_PADDING * spacing
+				};
+			case Modes.Large:
+				return {
+					width: TOOLTIP_LARGE_WIDTH * spacing,
+					height: TOOLTIP_LARGE_HEIGHT * spacing,
+					radius: TOOLTIP_LARGE_RADIUS * spacing,
+					padding: TOOLTIP_LARGE_PADDING * spacing
+				};
+			default:
+				throw new Error(`Invalid mode: ${mode}`);
+		}
+	});
+	let popupDimensions = $derived({
+		width: POPUP_WIDTH,
+		height: POPUP_HEIGHT,
+		radius: POPUP_RADIUS,
+		padding: POPUP_PADDING
+	});
+
 	let mapProvider: MaplibreProvider | undefined;
 	let mapLibre: maplibregl.Map | undefined;
 	let mapManager = $state<MapManager>();
 	let mapMarkers: Map<string, MapMarkerProperties> = new Map();
 
 	onMount(async () => {
+		// Get the mode from localStorage
+		mode = localStorage.getItem('mode') ?? Modes.Medium;
+
 		// Create a maplibre provider instance
 		mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
 			container: 'map',
@@ -99,25 +152,33 @@
 	});
 
 	$effect(() => {
+		// Jump to the search location when the map is available and search changes
 		if (mapLibre && search) {
 			mapLibre.jumpTo({ center: getSearchLocation(search.cityId) });
 		}
 	});
 
 	$effect(() => {
+		// Update markers when the map manager is available
 		if (mapManager) {
+			// And items change
 			updateMarkers(Array.from(items.values()));
 		}
+	});
+
+	$effect(() => {
+		// Save the mode to localStorage
+		localStorage.setItem('mode', mode);
 	});
 
 	function getModeLabel(mode: string): string {
 		switch (mode) {
 			case 'small':
-				return 'Cena';
+				return 'Cena, Tip';
 			case 'medium':
-				return 'Cena, Povrsina, Struktura';
+				return 'Cena, Tip, Povrsina, Struktura';
 			case 'large':
-				return 'Cena, Povrsina, Struktura, Slika';
+				return 'Cena, Tip, Slika';
 			default:
 				return '';
 		}
@@ -151,20 +212,23 @@
 				pin: {
 					initialize: onInitializePin,
 					element: document.createElement('div'),
-					dimensions: { radius: PIN_RADIUS * spacing, stroke: PIN_STROKE * spacing },
+					dimensions: {
+						radius: pinDimensions.radius,
+						stroke: pinDimensions.stroke
+					},
 					style: { stroke: '#ffffff', background: '#df2d4344' }
 				},
 				tooltip: {
 					initialize: onInitializeTooltip,
 					element: document.createElement('div'),
 					dimensions: {
-						width: TOOLTIP_WIDTH * spacing,
-						height: TOOLTIP_HEIGHT * spacing,
-						padding: TOOLTIP_RADIUS * spacing
+						width: tooltipDimensions.width,
+						height: tooltipDimensions.height,
+						padding: tooltipDimensions.padding
 					},
 					style: {
 						background: '#ffffff',
-						radius: 12 * spacing,
+						radius: tooltipDimensions.radius,
 						filter: 'drop-shadow(rgba(0, 0, 0, 0.25) 0px 2px 2px)'
 					}
 				}
@@ -175,13 +239,13 @@
 					initialize: onInitializePopup,
 					element: document.createElement('div'),
 					dimensions: {
-						width: POPUP_WIDTH,
-						height: POPUP_HEIGHT,
-						padding: 8
+						width: popupDimensions.width,
+						height: popupDimensions.height,
+						padding: popupDimensions.padding
 					},
 					style: {
 						background: '#ffffff',
-						radius: POPUP_RADIUS,
+						radius: popupDimensions.radius,
 						filter: 'drop-shadow(rgba(0, 0, 0, 0.25) 0px 4px 4px)'
 					}
 				};
@@ -200,8 +264,8 @@
 		const item = items.get(id);
 		if (!item) throw new Error('Item not found');
 
-		const width = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
-		const height = (2 * PIN_RADIUS - PIN_STROKE) * spacing;
+		const width = 2 * pinDimensions.radius - pinDimensions.stroke;
+		const height = 2 * pinDimensions.radius - pinDimensions.stroke;
 
 		mount(Pin, {
 			target: element,
@@ -220,10 +284,28 @@
 		const height = dimensions.height;
 		const data = details;
 
-		mount(Tooltip, {
-			target: element,
-			props: { id, spacing, width, height, data }
-		});
+		switch (mode) {
+			case 'small':
+				mount(TooltipSmall, {
+					target: element,
+					props: { id, spacing, width, height, data }
+				});
+				break;
+			case 'medium':
+				mount(TooltipMedium, {
+					target: element,
+					props: { id, spacing, width, height, data }
+				});
+				break;
+			case 'large':
+				mount(TooltipLarge, {
+					target: element,
+					props: { id, spacing, width, height, data }
+				});
+				break;
+			default:
+				throw new Error('Invalid mode');
+		}
 
 		if (details.get(id) === undefined) await onSearchDetailsRequest(id);
 	}
@@ -266,7 +348,7 @@
 		</Select.Trigger>
 		<Select.Content align="end" class="mt-2">
 			<Select.Group class="font-medium ">
-				<Select.Label>Podaci</Select.Label>
+				<Select.Label>Marker</Select.Label>
 				{#each Object.values(Modes) as mode}
 					<Select.Item value={mode} label={mode}>
 						{getModeLabel(mode)}
