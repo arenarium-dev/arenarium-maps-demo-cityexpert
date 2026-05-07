@@ -58,9 +58,6 @@
 		style:height="{height}px"
 		transition:fade={{ duration: 250 }}
 	>
-		<div class="flex flex-col gap-1">
-			<div class="w-full grow rounded-lg bg-gray-100"></div>
-			<div class="h-4 w-full rounded-lg bg-gray-100"></div>
-		</div>
+		<div class="w-full grow rounded-[calc(3*var(--spacing))] bg-gray-100"></div>
 	</div>
 {/if}

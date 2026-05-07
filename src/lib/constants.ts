@@ -2,7 +2,7 @@ export const PIN_RADIUS = 10;
 export const PIN_STROKE = 2;
 
 export const TOOLTIP_SMALL_RADIUS = 12;
-export const TOOLTIP_SMALL_WIDTH = 78;
+export const TOOLTIP_SMALL_WIDTH = 60;
 export const TOOLTIP_SMALL_HEIGHT = 24;
 export const TOOLTIP_SMALL_PADDING = 6;
 

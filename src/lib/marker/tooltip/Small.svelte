@@ -27,13 +27,13 @@
 		style="--spacing: {spacing}px; width: {width}px; height: {height}px;"
 		transition:fade={{ duration: 250 }}
 	>
-		<div class="font-primary flex h-full items-center pr-1 pl-2 text-[#252525]">
-			<span class="grow font-[Montserrat] text-[calc(3*var(--spacing))] leading-4 font-bold">
+		<div class="font-primary flex h-full items-center justify-center text-[#252525]">
+			<span class="font-[Montserrat] text-[calc(3*var(--spacing))] leading-4 font-bold">
 				{details.price > 9999 ? `${(details.price / 1000).toFixed(1)}K` : details.price} €
 			</span>
-			<div class="size-4">
+			<!-- <div class="size-4">
 				<Type type={details.ptId} />
-			</div>
+			</div> -->
 		</div>
 	</div>
 {:else}
