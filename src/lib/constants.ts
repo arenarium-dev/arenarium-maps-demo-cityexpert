@@ -13,7 +13,7 @@ export const TOOLTIP_MEDIUM_PADDING = 8;
 
 export const TOOLTIP_LARGE_RADIUS = 16;
 export const TOOLTIP_LARGE_WIDTH = 128;
-export const TOOLTIP_LARGE_HEIGHT = 96;
+export const TOOLTIP_LARGE_HEIGHT = 88;
 export const TOOLTIP_LARGE_PADDING = 8;
 
 export const POPUP_RADIUS = 24;
