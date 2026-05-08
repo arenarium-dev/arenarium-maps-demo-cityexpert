@@ -8,7 +8,7 @@ export const TOOLTIP_SMALL_PADDING = 6;
 
 export const TOOLTIP_MEDIUM_RADIUS = 10;
 export const TOOLTIP_MEDIUM_WIDTH = 90;
-export const TOOLTIP_MEDIUM_HEIGHT = 48;
+export const TOOLTIP_MEDIUM_HEIGHT = 46;
 export const TOOLTIP_MEDIUM_PADDING = 8;
 
 export const TOOLTIP_LARGE_RADIUS = 16;

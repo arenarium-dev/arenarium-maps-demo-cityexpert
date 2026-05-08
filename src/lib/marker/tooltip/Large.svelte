@@ -40,12 +40,12 @@
 		></div>
 		<div class="absolute right-2 bottom-2 left-2 flex items-center text-[#252525]">
 			<span
-				class="rounded-full bg-white/60 px-2 pt-px font-[Montserrat] text-[calc(2.5*var(--spacing))] leading-4.5 font-bold backdrop-blur-xs"
+				class="rounded-full bg-white/75 px-2 pt-px font-[Montserrat] text-[calc(2.5*var(--spacing))] leading-4.5 font-bold backdrop-blur-xs"
 			>
 				{details.price > 9999 ? `${(details.price / 1000).toFixed(1)}K` : details.price} €
 			</span>
 			<div class="grow"></div>
-			<div class="box-content size-4 rounded-full bg-white/60 p-px pb-0.5">
+			<div class="box-content size-4 rounded-full bg-white/75 p-px pb-0.5">
 				<Type type={details.ptId} />
 			</div>
 		</div>
