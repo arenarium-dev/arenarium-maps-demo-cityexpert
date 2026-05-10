@@ -31,8 +31,8 @@
 	let width = $derived(outerWidth.current ?? 0);
 	let compact = $derived(width > 0 && width <= 470 + 32);
 
-	let search = $derived<SearchRequest>(getSearchFromPath(page.params.search));
-	let searchDialog = $state<SearchRequest>(getSearchFromPath(page.params.search));
+	let search = $derived<SearchRequest>(getSearchFromPath(page.url.searchParams.get('search')));
+	let searchDialog = $state<SearchRequest>(getSearchFromPath(page.url.searchParams.get('search')));
 	let searchLoadings = $state(0);
 	let searchItems: SvelteMap<string, SearchItem> = new SvelteMap();
 	let searchItemDetails: SvelteMap<string, SearchItemDetails> = new SvelteMap();
@@ -78,7 +78,7 @@
 				const oldSearch = getPathFromSearch(search);
 				const newSearch = getPathFromSearch(searchDialog);
 				// Navigate to the new search URL
-				if (oldSearch !== newSearch) goto(`/${newSearch}`);
+				if (oldSearch !== newSearch) goto(`?search=${newSearch}`);
 			});
 		}
 	});
@@ -95,7 +95,7 @@
 		}
 	});
 
-	function getSearchFromPath(path: string | undefined): SearchRequest {
+	function getSearchFromPath(path: string | null): SearchRequest {
 		return path ? JSON.parse(decodeURIComponent(atob(path))) : getDefaultSearch();
 	}
 
