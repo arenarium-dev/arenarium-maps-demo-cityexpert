@@ -11,10 +11,15 @@ export const TOOLTIP_MEDIUM_WIDTH = 90;
 export const TOOLTIP_MEDIUM_HEIGHT = 46;
 export const TOOLTIP_MEDIUM_PADDING = 8;
 
-export const TOOLTIP_LARGE_RADIUS = 16;
-export const TOOLTIP_LARGE_WIDTH = 128;
-export const TOOLTIP_LARGE_HEIGHT = 88;
+export const TOOLTIP_LARGE_RADIUS = 10;
+export const TOOLTIP_LARGE_WIDTH = 174;
+export const TOOLTIP_LARGE_HEIGHT = 64;
 export const TOOLTIP_LARGE_PADDING = 8;
+
+export const TOOLTIP_IMAGE_RADIUS = 16;
+export const TOOLTIP_IMAGE_WIDTH = 128;
+export const TOOLTIP_IMAGE_HEIGHT = 88;
+export const TOOLTIP_IMAGE_PADDING = 8;
 
 export const POPUP_RADIUS = 24;
 export const POPUP_WIDTH = 320;

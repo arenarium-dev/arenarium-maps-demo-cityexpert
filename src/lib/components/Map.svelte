@@ -20,7 +20,11 @@
 		TOOLTIP_LARGE_HEIGHT,
 		TOOLTIP_LARGE_RADIUS,
 		TOOLTIP_LARGE_WIDTH,
-		TOOLTIP_LARGE_PADDING
+		TOOLTIP_LARGE_PADDING,
+		TOOLTIP_IMAGE_RADIUS,
+		TOOLTIP_IMAGE_WIDTH,
+		TOOLTIP_IMAGE_HEIGHT,
+		TOOLTIP_IMAGE_PADDING
 	} from '$lib/constants';
 	import { getSearchLocation } from '$lib/search';
 	import type { SearchItem, SearchItemDetails, SearchRequest } from '$lib/types';
@@ -30,6 +34,7 @@
 	import TooltipSmall from '$lib/marker/tooltip/Small.svelte';
 	import TooltipMedium from '$lib/marker/tooltip/Medium.svelte';
 	import TooltipLarge from '$lib/marker/tooltip/Large.svelte';
+	import TooltipImage from '$lib/marker/tooltip/Image.svelte';
 
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
@@ -68,7 +73,8 @@
 	const Modes = {
 		Small: 'small',
 		Medium: 'medium',
-		Large: 'large'
+		Large: 'large',
+		Image: 'image'
 	};
 
 	let mode = $state<string>(Modes.Medium);
@@ -100,6 +106,13 @@
 					height: TOOLTIP_LARGE_HEIGHT * spacing,
 					radius: TOOLTIP_LARGE_RADIUS * spacing,
 					padding: TOOLTIP_LARGE_PADDING * spacing
+				};
+			case Modes.Image:
+				return {
+					width: TOOLTIP_IMAGE_WIDTH * spacing,
+					height: TOOLTIP_IMAGE_HEIGHT * spacing,
+					radius: TOOLTIP_IMAGE_RADIUS * spacing,
+					padding: TOOLTIP_IMAGE_PADDING * spacing
 				};
 			default:
 				throw new Error(`Invalid mode: ${mode}`);
@@ -174,13 +187,15 @@
 	function getModeLabel(mode: string): string {
 		switch (mode) {
 			case 'small':
-				return 'Cena';
+				return 'Mali';
 			case 'medium':
-				return 'Cena, Tip, Povrsina, Struktura';
+				return 'Srednji';
 			case 'large':
-				return 'Cena, Tip, Slika';
+				return 'Veliki';
+			case 'image':
+				return 'Slika';
 			default:
-				return '';
+				throw new Error(`Unknown mode: ${mode}`);
 		}
 	}
 
@@ -299,6 +314,12 @@
 				break;
 			case 'large':
 				mount(TooltipLarge, {
+					target: element,
+					props: { id, spacing, width, height, data }
+				});
+				break;
+			case 'image':
+				mount(TooltipImage, {
 					target: element,
 					props: { id, spacing, width, height, data }
 				});
