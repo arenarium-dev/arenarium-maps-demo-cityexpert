@@ -31,7 +31,7 @@
 
 {#if details}
 	<div
-		class="absolute flex h-full w-full items-stretch gap-2 p-1 font-[Poppins]"
+		class="absolute flex items-stretch gap-2 p-1 font-[Poppins]"
 		style="--spacing: {spacing}px; width: {width}px; height: {height}px;"
 		transition:fade={{ duration: 250 }}
 	>
@@ -64,14 +64,16 @@
 	</div>
 {:else}
 	<div
-		class="absolute flex flex-col gap-1.5 p-1"
+		class="absolute flex gap-2 p-1"
 		style="--spacing: {spacing}px;"
 		style:width="{width}px"
 		style:height="{height}px"
 		transition:fade={{ duration: 250 }}
 	>
-		<div class="flex flex-col gap-1">
+		<div class="aspect-4/3 rounded-lg bg-gray-100"></div>
+		<div class="flex grow flex-col gap-1">
 			<div class="h-5 w-full rounded-lg bg-gray-100"></div>
+			<div class="h-4 w-full rounded-lg bg-gray-100"></div>
 			<div class="h-4 w-full rounded-lg bg-gray-100"></div>
 		</div>
 	</div>
