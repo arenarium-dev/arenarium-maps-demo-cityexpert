@@ -52,7 +52,7 @@
 		transition:fade={{ duration: 250 }}
 	>
 		<div class="flex flex-col gap-1">
-			<div class="h-5 w-full rounded-lg bg-gray-100"></div>
+			<div class="h-4.5 w-full rounded-lg bg-gray-100"></div>
 			<div class="h-4 w-full rounded-lg bg-gray-100"></div>
 		</div>
 	</div>
