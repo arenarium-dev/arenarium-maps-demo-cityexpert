@@ -76,7 +76,7 @@
 				for (const file of details.onsite.imageFiles) {
 					const id = Math.floor(propId / 1e3) * 1e3;
 					const path = file.toLowerCase().replaceAll(' ', '_');
-					const url = `https://img.cityexpert.rs/properties/470x/${id}/${propId}/slike/${path}`;
+					const url = `https://img.cityexpert.rs/properties/470x/${id}/${propId}/slike/${path}@avif`;
 					array.push(url);
 				}
 			}
@@ -84,7 +84,7 @@
 			if (details.onsite.imgFiles !== undefined) {
 				for (const file of details.onsite.imgFiles) {
 					const path = file.toLowerCase().replaceAll(' ', '_');
-					const url = `https://img.cityexpert.rs/sites/default/files/styles/470x/public/image/${path}`;
+					const url = `https://img.cityexpert.rs/sites/default/files/styles/470x/public/image/${path}@avif`;
 					array.push(url);
 				}
 			}
