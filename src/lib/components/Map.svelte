@@ -47,10 +47,8 @@
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
 	import '@arenarium/maps/style.css';
-	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
 
-	import * as maplibregl from 'maplibre-gl';
-	import 'maplibre-gl/dist/maplibre-gl.css';
+	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
 
 	interface Props {
 		compact: boolean;
@@ -126,7 +124,7 @@
 	});
 
 	let mapProvider: MaplibreProvider | undefined;
-	let mapLibre: maplibregl.Map | undefined;
+	let mapLibre: ReturnType<MaplibreProvider['getMap']> | undefined;
 	let mapManager = $state<MapManager>();
 	let mapMarkers: Map<string, MapMarkerProperties> = new Map();
 
@@ -135,7 +133,7 @@
 		mode = localStorage.getItem('mode') ?? Modes.Medium;
 
 		// Create a maplibre provider instance
-		mapProvider = new MaplibreProvider(maplibregl.Map, maplibregl.Marker, {
+		mapProvider = await MaplibreProvider.create({
 			container: 'map',
 			zoom: 13,
 			zoomSnap: compact ? 0 : 0.2,

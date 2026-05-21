@@ -4,7 +4,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
-	build: {
-		target: 'es2022'
+	ssr: {
+		// Replace 'your-package-name' with the name of the package
+		// that is importing the CSS file.
+		noExternal: ['@arenarium/maps-integration-maplibre', 'maplibre-gl']
 	}
 });
