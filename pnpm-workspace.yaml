@@ -2,3 +2,5 @@ allowBuilds:
   esbuild: false
   sharp: false
   workerd: true
+minimumReleaseAgeExclude:
+  - '@arenarium/maps@1.5.2'
