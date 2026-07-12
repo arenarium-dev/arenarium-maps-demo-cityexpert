@@ -3,6 +3,6 @@ allowBuilds:
   sharp: false
   workerd: true
 minimumReleaseAgeExclude:
-  - '@arenarium/maps-core@1.1.2'
-  - '@arenarium/maps@1.5.4'
   - '@arenarium/maps-integration-maplibre@1.0.30'
+  - '@arenarium/maps-core@1.1.5'
+  - '@arenarium/maps@1.5.8'

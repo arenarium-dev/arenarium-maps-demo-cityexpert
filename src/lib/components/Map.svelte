@@ -46,7 +46,6 @@
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
-	import '@arenarium/maps/style.css';
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
 
