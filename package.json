@@ -42,7 +42,7 @@
 		"vite": "^7.3.6"
 	},
 	"dependencies": {
-		"@arenarium/maps": "^1.5.8",
+		"@arenarium/maps": "^1.5.10",
 		"@arenarium/maps-integration-maplibre": "^1.0.31",
 		"wrangler": "^4.110.0"
 	}
