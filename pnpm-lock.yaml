@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@arenarium/maps':
-        specifier: 1.5.19
+        specifier: ^1.5.19
         version: 1.5.19
       '@arenarium/maps-integration-maplibre':
-        specifier: ^1.0.36
-        version: 1.0.36
+        specifier: ^1.0.38
+        version: 1.0.38
       wrangler:
         specifier: ^4.127.1
         version: 4.127.1
@@ -90,8 +90,8 @@ importers:
 
 packages:
 
-  '@arenarium/maps-integration-maplibre@1.0.36':
-    resolution: {integrity: sha512-PXLNm4bbLO7a4x5xzv594KLesau9NRO4W0oIGeesD6znIEwSzAuCTMNJB28uRlSxrCEYtdOcfTtKxSvqjJFOdA==}
+  '@arenarium/maps-integration-maplibre@1.0.38':
+    resolution: {integrity: sha512-NOlFk5Pbxxd35TsgOfyqeqD88knZIF2lN+Yi9y/xSsl2DsH4tDcELW9d7l3UVPHlB4GECWGsfgqmAzc5caIf3Q==}
 
   '@arenarium/maps@1.5.19':
     resolution: {integrity: sha512-o44Z4GXLi2NQEofUtOhzJ1YxaDpMaswLqfbVi4Q6pIyiRp4MDueAws3a/Fjx2abLOr3y46B5ckw3wc2lqzMqog==}
@@ -1606,7 +1606,7 @@ packages:
 
 snapshots:
 
-  '@arenarium/maps-integration-maplibre@1.0.36':
+  '@arenarium/maps-integration-maplibre@1.0.38':
     dependencies:
       '@types/geojson': 7946.0.16
       maplibre-gl: 5.24.0

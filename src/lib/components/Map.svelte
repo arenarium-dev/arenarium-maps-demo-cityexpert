@@ -46,6 +46,7 @@
 
 	import { MapManager, type MapMarkerProperties } from '@arenarium/maps';
 	import { MaplibreProvider } from '@arenarium/maps-integration-maplibre';
+	import '@arenarium/maps-integration-maplibre/main.css';
 
 	import { PUBLIC_ARENARIUM_MAPS_TOKEN } from '$env/static/public';
 
@@ -356,7 +357,7 @@
 	}
 </script>
 
-<div id="map" class="absolute h-full w-full"></div>
+<div id="map" class="absolute size-full"></div>
 <div class="absolute top-4 right-4 rounded-lg">
 	<Select.Root type="single" bind:value={mode}>
 		<Select.Trigger

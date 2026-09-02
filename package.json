@@ -42,8 +42,8 @@
 		"vite": "^7.3.6"
 	},
 	"dependencies": {
-		"@arenarium/maps": "1.5.19",
-		"@arenarium/maps-integration-maplibre": "^1.0.36",
+		"@arenarium/maps": "^1.5.19",
+		"@arenarium/maps-integration-maplibre": "^1.0.38",
 		"wrangler": "^4.127.1"
 	}
 }
